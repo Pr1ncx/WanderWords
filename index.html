@@ -25,24 +25,8 @@
 
   <canvas id="webgl"></canvas>
 
-  <!-- Painted frame + scalloped jharokha corners -->
-  <div id="frame"></div>
-  <div class="scallop scallop--tl"></div>
-  <div class="scallop scallop--br"></div>
 
   <!-- Fixed controls -->
-  <a id="badge" class="ctrl" aria-label="WanderWords India Rail Tour">
-    <svg viewBox="0 0 120 120">
-      <defs><path id="ring" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" /></defs>
-      <circle cx="60" cy="60" r="57" fill="#F3E6CC" />
-      <circle cx="60" cy="60" r="51" fill="none" stroke="#6B3A24" stroke-width="1.5" />
-      <circle cx="60" cy="60" r="34" fill="none" stroke="#6B3A24" stroke-width="1" />
-      <text font-family="Inter" font-weight="700" font-size="9.5" letter-spacing="2.2" fill="#6B3A24">
-        <textPath href="#ring">WANDERWORDS · INDIA RAIL TOUR · EST. 2026 ·</textPath>
-      </text>
-      <text x="60" y="70" text-anchor="middle" font-family="Shrikhand" font-size="28" fill="#B5523B">WW</text>
-    </svg>
-  </a>
   <button id="menuBtn" class="pill ctrl" aria-label="Open menu"><span>Menu</span><i class="burger"></i></button>
   <button id="soundBtn" class="sound-btn ctrl is-muted" aria-label="Toggle music">♪</button>
   <nav id="hud" class="hud ctrl" aria-label="Journey">
