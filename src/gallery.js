@@ -23,10 +23,10 @@ const LAYOUT = [
 const STATIONS = LAYOUT.map((l) => ({ pos: [l.x - OFFSET, EYE, CAM_Z], look: [l.x - OFFSET, EYE, -10] }));
 
 const LAYERS = [
-  { key: 'bg', z: -44, px: 2048, sway: 0 },
-  { key: 'far', z: -26, px: 3072, sway: 0 },
-  { key: 'mid', z: -14, px: 4096, sway: 0 },
-  { key: 'fg', z: -4, px: 4096, sway: 1 },
+  { key: 'bg', z: -44, px: 1024, sway: 0 },
+  { key: 'far', z: -26, px: 1536, sway: 0 },
+  { key: 'mid', z: -14, px: 2048, sway: 0 },
+  { key: 'fg', z: -4, px: 2048, sway: 1 },
 ];
 const Q = matchMedia('(max-width: 900px)').matches ? 0.5 : 1;
 const X0 = TITLE.pos[0] - 2, X1 = STATIONS[4].pos[0] + 2;
@@ -149,7 +149,7 @@ export class Gallery {
       const tex = new THREE.CanvasTexture(canvases[s.key]);
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.premultiplyAlpha = true;
-      tex.anisotropy = 8;
+      tex.anisotropy = 4;
       const mat = plateMaterial(tex, s.sway);
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(s.worldW, s.worldH), mat);
       mesh.position.set((X0 + X1) / 2, EYE, s.z);
@@ -320,6 +320,18 @@ export class Gallery {
       ticket.rotation.z = 0.1 + Math.sin(t * 0.6) * 0.04;
       ticket.rotation.y = -0.35 + this.parallax.x * 0.15;
     });
+  }
+
+  // Ritual reward: the air comes alive for a moment
+  celebrate() {
+    if (this.celebrating) return;
+    this.celebrating = true;
+    const u = this.particles.material.uniforms, o = u.uOpacity.value, s = u.uSway.value;
+    gsap.timeline({ onComplete: () => (this.celebrating = false) })
+      .to(u.uOpacity, { value: Math.min(1, o * 2.2), duration: 0.4, ease: 'power2.out' }, 0)
+      .to(u.uSway, { value: s * 3, duration: 0.4, ease: 'power2.out' }, 0)
+      .to(u.uOpacity, { value: o, duration: 2.6, ease: 'power2.inOut' }, 0.6)
+      .to(u.uSway, { value: s, duration: 2.6, ease: 'power2.inOut' }, 0.6);
   }
 
   update(dt, t, pointer) {
