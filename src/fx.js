@@ -86,7 +86,40 @@ export function drawCover(canvas, ch, i) {
   c.fillText(ch.tagline, W / 2, H / 2 + size * 0.3 + 110);
 }
 
-export function drawPostcard(chapters) {
+// Round rubber stamp drawn on the postcard canvas
+function drawStamp(c, s, x, y, r, rot) {
+  c.save();
+  c.translate(x, y);
+  c.rotate(rot);
+  c.globalAlpha = 0.9;
+  c.fillStyle = s.color;
+  c.beginPath();
+  c.arc(0, 0, r, 0, Math.PI * 2);
+  c.fill();
+  c.strokeStyle = '#F3E6CC';
+  c.fillStyle = '#F3E6CC';
+  c.lineWidth = r * 0.05;
+  for (const k of [0.9, 0.55]) {
+    c.beginPath();
+    c.arc(0, 0, r * k, 0, Math.PI * 2);
+    c.stroke();
+  }
+  const ring = `${s.label.toUpperCase()} · WW · `;
+  const step = Math.min(0.24, (Math.PI * 2) / ring.length);
+  c.font = `700 ${Math.round(r * 0.15)}px Inter`;
+  c.textAlign = 'center';
+  [...ring].forEach((ch, i) => {
+    c.save();
+    c.rotate(i * step);
+    c.fillText(ch, 0, -r * 0.66);
+    c.restore();
+  });
+  c.font = `italic ${Math.round(r * 0.26)}px "Playfair Display"`;
+  c.fillText(s.label.split(' ')[0], 0, r * 0.09, r * 1.0);
+  c.restore();
+}
+
+export function drawPostcard(chapters, stamps = []) {
   const cv = document.createElement('canvas');
   cv.width = 1600;
   cv.height = 1000;
@@ -106,5 +139,28 @@ export function drawPostcard(chapters) {
     c.fillText(ch.name.toUpperCase(), 240 + (k % 5) * 280, 640 + Math.floor(k / 5) * 80));
   c.font = 'italic 30px "Playfair Display"';
   c.fillText('Ten chapters. One journey. · WanderWords', 800, 860);
+
+  // Letterpress finish: paper tooth
+  for (let i = 0; i < 26000; i++) {
+    c.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,.07)' : 'rgba(255,240,210,.06)';
+    c.fillRect(Math.random() * 1600, Math.random() * 1000, 2, 2);
+  }
+  // Postmark waves
+  c.strokeStyle = 'rgba(243,230,204,.35)';
+  c.lineWidth = 3;
+  for (let k = 0; k < 5; k++) {
+    c.beginPath();
+    for (let x = 1120; x <= 1560; x += 10) {
+      const y = 110 + k * 16 + Math.sin(x / 22) * 6;
+      if (x === 1120) c.moveTo(x, y);
+      else c.lineTo(x, y);
+    }
+    c.stroke();
+  }
+  // The stamps you collected on the journey
+  stamps.forEach((s, k) => {
+    const col = k % 4, row = Math.floor(k / 4);
+    drawStamp(c, s, 1200 + col * 100 + (row % 2) * 30, 130 + row * 105, 46, (Math.random() - 0.5) * 0.5);
+  });
   return cv;
 }
