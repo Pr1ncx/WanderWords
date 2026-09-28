@@ -46,6 +46,8 @@ Add royalty-free `ambient.mp3` and `whoosh.mp3` to `public/audio/`.
 | `src/chapters.js` | All chapter content |
 | `src/ui.js` | Article, lightbox and menu templates |
 | `src/media.js` | Photo/video loading with placeholders |
-| `src/textures.js` | Procedural wood, plaster, rug and tile textures |
+| `src/textures.js` | Procedural wood, plaster, marble, rug and tile textures (tileable fractal noise) |
+| `src/post.js` | Post-processing: bloom, lens aberration, colour grade, vignette, film grain |
+| `src/grain.css` | Paper fibre and animated print grain over the whole site |
 
 Built with Vite, three.js, GSAP and Lenis.
