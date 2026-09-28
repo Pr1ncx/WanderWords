@@ -10,7 +10,7 @@ An interactive, premium digital travel magazine told as a journey on the WanderW
 2. **Cover gate**: "The INDIAN JOURNEY begins".
 3. **Train intro**: a cinematic ride with "A journey, ten stops." and SKIP INTRO.
 4. **Train rides** between stops: the next city's real video plays in the window.
-5. **Chapter title card** in a themed 3D room, with an extruded title and EXPLORE.
+5. **Chapter title card** over a painted landscape (miniature and oil-painting style), with a floating train ticket and EXPLORE.
 6. **Explore**: scroll through 5 exhibits (hero video + 4 framed photos). Click any exhibit to open it full screen.
 7. **Read the story**: a full magazine article with photos, video and travel notes.
 8. **Finale**: download a postcard.
@@ -42,7 +42,9 @@ Add royalty-free `ambient.mp3` and `whoosh.mp3` to `public/audio/`.
 | `src/engine.js` | Renderer and view switching |
 | `src/train.js` | Train carriage, window video |
 | `src/landscape.js` | Scenery outside the train |
-| `src/room.js` | Themed 3D room template and exhibits |
+| `src/gallery.js` | Chapter view: 4 painted parallax plates, gilt arch video, mounted prints, ticket |
+| `src/painter.js` | Procedural painted plates per city (sky, ranges, landmark, trees, foliage) |
+| `src/particles.js` | Drifting atmosphere per city (petals, snow, dust, fireflies, glitter, mist) |
 | `src/chapters.js` | All chapter content |
 | `src/ui.js` | Article, lightbox and menu templates |
 | `src/media.js` | Photo/video loading with placeholders |

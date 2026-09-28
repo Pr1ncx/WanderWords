@@ -4,7 +4,7 @@ import Lenis from 'lenis';
 import gsap from 'gsap';
 import { Engine } from './engine.js';
 import { Train } from './train.js';
-import { Room } from './room.js';
+import { Gallery } from './gallery.js';
 import { CHAPTERS, INTRO_BIOME } from './chapters.js';
 import { CREDITS } from './credits.js';
 import { videoSource, placeholderURL } from './media.js';
@@ -303,7 +303,7 @@ function arrive(i) {
 function openRoom(i) {
   disposeRoom();
   S.current = i;
-  room = new Room(CHAPTERS[i], engine.env);
+  room = new Gallery(CHAPTERS[i], engine.env);
   engine.setView(room);
   engine.post.grade(CHAPTERS[i].room.trim, 0.4);
   room.play();
