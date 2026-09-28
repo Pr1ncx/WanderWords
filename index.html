@@ -6,14 +6,10 @@
   <title>WANDERWORDS · Ten stops. Ten stories. One India.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
 <body class="is-locked">
   <svg class="svg-defs" width="0" height="0" aria-hidden="true">
-    <filter id="rough">
-      <feTurbulence type="fractalNoise" baseFrequency="0.015 0.04" numOctaves="3" seed="4" result="noise" />
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="34" xChannelSelector="R" yChannelSelector="G" />
-    </filter>
     <!-- Rubber-stamp ink: slightly wobbly edges and missing ink -->
     <filter id="inky">
       <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="n" />
@@ -23,43 +19,54 @@
     </filter>
   </svg>
 
+  <!-- The picture: always 2.39:1 inside the frame, nothing is ever drawn on top of it -->
   <canvas id="webgl"></canvas>
-  <div class="letterbox letterbox--top" aria-hidden="true"></div>
-  <div class="letterbox letterbox--bottom" aria-hidden="true"></div>
 
+  <!-- The cinema frame: every control lives in the black margins -->
+  <header class="bar bar--top">
+    <p class="wordmark ctrl">Wander<em>Words</em></p>
+    <p id="chapterLabel" class="bar__chapter ctrl" aria-live="polite"></p>
+    <button id="menuBtn" class="tbtn bar__end ctrl" aria-label="Open menu">Menu</button>
+  </header>
 
-  <!-- Fixed controls -->
-  <button id="menuBtn" class="pill ctrl" aria-label="Open menu"><span>Menu</span><i class="burger"></i></button>
-  <button id="soundBtn" class="sound-btn ctrl is-muted" aria-label="Toggle music">♪</button>
-  <nav id="hud" class="hud ctrl" aria-label="Journey">
-    <ol class="hud__stops"></ol>
-    <div class="hud__bar" aria-hidden="true"><i></i></div>
-  </nav>
-  <div class="ctrl-br ctrl">
-    <button id="stampsBtn" class="stamps" aria-label="Open your passport">
-      <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-width="8" /><circle cx="60" cy="60" r="30" fill="none" stroke="currentColor" stroke-width="5" /><circle cx="60" cy="60" r="10" fill="currentColor" /></svg>
-      <span class="stamps__num">00 / 12</span>
-    </button>
-    <button id="ccBtn" class="pill-sm" aria-label="Toggle captions">CC</button>
-    <button id="replayBtn" class="pill-sm" aria-label="Replay chapter">↺</button>
-  </div>
-  <p id="cc" class="cc"></p>
+  <footer class="bar bar--bottom">
+    <i id="barProgress" class="bar__progress" aria-hidden="true"></i>
+    <nav class="bar__start ctrl" aria-label="Journey"><ol id="journey" class="journey"></ol></nav>
+    <div class="bar__centre ctrl">
+      <div class="caption-block" aria-live="polite">
+        <p id="line" class="line"></p>
+        <p id="sub" class="sub"></p>
+      </div>
+      <div class="end-actions">
+        <button id="stampBtn" class="stamp-hold" aria-label="Press and hold to stamp your passport">
+          <svg class="ring-sm" viewBox="0 0 120 120" aria-hidden="true"><circle class="hold__track" cx="60" cy="60" r="52" /><circle class="hold__fill" cx="60" cy="60" r="52" /></svg>
+          <span>Hold to stamp</span>
+        </button>
+        <button id="readBtn" class="tbtn">Read the story</button>
+        <button id="nextBtn" class="tbtn tbtn--strong">Next stop →</button>
+      </div>
+    </div>
+    <div class="bar__tools bar__end ctrl">
+      <button id="skipBtn" class="tbtn is-hidden">Skip →</button>
+      <button id="soundBtn" class="tbtn" aria-label="Toggle sound">Sound off</button>
+      <button id="ccBtn" class="tbtn" aria-label="Toggle captions">CC</button>
+      <button id="stampsBtn" class="tbtn" aria-label="Open your passport">Passport <span class="stamps__num">00 / 12</span></button>
+    </div>
+  </footer>
 
   <!-- 1. Loader -->
   <div id="loader">
-    <div class="mosaic mosaic--top"></div>
     <div class="loader__center">
-      <p class="loader__word">loading</p>
-      <p class="loader__pct">0%</p>
+      <p class="loader__word">Wander<em>Words</em></p>
+      <p class="loader__pct">Boarding · 0%</p>
     </div>
     <div class="loader__prompt">
-      <p class="micro">Activate sound for a better experience</p>
+      <p class="micro">Best experienced with sound</p>
       <div class="loader__actions">
         <button class="btn" data-sound="on"><span>Sound on</span></button>
         <button class="btn btn--ghost" data-sound="off"><span>Continue muted</span></button>
       </div>
     </div>
-    <div class="mosaic mosaic--bottom"></div>
   </div>
 
   <!-- 2. Opening: wipe the fogged window, then punch your ticket -->
@@ -88,41 +95,9 @@
     <h2 class="op-ride"><span><em>Now</em> ride it.</span></h2>
   </section>
 
-  <!-- 3. Train overlay (intro + rides) -->
-  <div id="trainOverlay">
-    <p id="trainCaption" class="caption"></p>
-    <button id="skipBtn" class="skip-intro">SKIP INTRO &gt;</button>
-  </div>
-
-  <!-- 4. Chapter title card -->
-  <section id="titleCard" class="title-card">
-    <p class="eyebrow" id="tcNum">CHAPTER 01</p>
-    <h1 id="tcTitle" class="tc-title"></h1>
-    <p class="micro" id="tcCity"></p>
-    <button id="exploreBtn" class="explore-btn">EXPLORE &gt;</button>
-  </section>
-
-  <!-- 5. Room exploration UI -->
-  <div id="exploreUI">
-    <article id="exhibit" class="exhibit">
-      <p class="ex-num"></p>
-      <h3></h3>
-      <p class="ex-text"></p>
-      <button id="viewBtn" class="link-btn"><span>View &gt;</span></button>
-    </article>
-    <div id="dots" class="dots"></div>
-    <p id="hint" class="hint">Scroll to explore ↓</p>
-    <div id="endPanel" class="end-panel">
-      <p class="eyebrow">End of chapter</p>
-      <button id="ritualBtn" class="btn btn--ritual"><span>✦ Earn the stamp</span></button>
-      <button id="readBtn" class="btn btn--magnetic"><span>Read the story</span></button>
-      <button id="nextBtn" class="btn btn--magnetic btn--solid"><span>Next stop →</span></button>
-    </div>
-  </div>
-
-  <!-- Overlays -->
+  <!-- Overlays (opened by you, never on their own) -->
   <section id="article" class="overlay article" data-lenis-prevent>
-    <button id="articleClose" class="close-btn">Back to the scene ✕</button>
+    <button id="articleClose" class="close-btn">Back to the journey ✕</button>
     <div class="article__inner"></div>
   </section>
 
@@ -137,15 +112,6 @@
     <button id="menuClose" class="close-btn">Close ✕</button>
     <div class="menu__body"></div>
   </nav>
-
-  <!-- City ritual: one small interaction earns the chapter's stamp -->
-  <section id="ritual" class="ritual" aria-live="polite">
-    <p class="eyebrow ritual__eyebrow">A small ritual</p>
-    <h2 class="ritual__verb"></h2>
-    <div class="ritual__stage"></div>
-    <p class="micro ritual__hint"></p>
-    <button class="ritual__skip">Not now</button>
-  </section>
 
   <section id="passport" class="overlay passport-overlay" data-lenis-prevent>
     <button id="passportClose" class="close-btn">Close ✕</button>
@@ -163,21 +129,18 @@
 
   <!-- Finale -->
   <section id="gift">
-    <div class="mosaic mosaic--top"></div>
     <div class="intro__card">
       <p class="eyebrow">Journey complete</p>
-      <h2 class="intro__title"><em>Your</em> PASSPORT <em>is full of stories</em></h2>
+      <h2 class="intro__title"><em>Your passport</em> is full of stories</h2>
       <div id="giftPassport" class="passport"></div>
       <p id="giftCount" class="micro passport__caption"></p>
-      <button class="btn btn--magnetic" id="download"><span>Download postcard</span></button>
+      <button class="btn" id="download"><span>Download postcard</span></button>
       <button class="btn btn--ghost" id="restart"><span>Travel again</span></button>
     </div>
-    <div class="mosaic mosaic--bottom"></div>
   </section>
 
   <div id="scroll-space"></div>
 
-  <!-- Print finish (grain, paper) is rendered in the WebGL film pass, not as DOM overlays -->
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

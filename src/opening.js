@@ -12,7 +12,7 @@ function canvas(w, h) {
   return [c, c.getContext('2d')];
 }
 
-// The real landscape behind the glass, painted at screen aspect (kept small for speed)
+// The landscape behind the glass, painted at screen aspect (kept small for speed)
 function paintScene(target) {
   const k = Math.min(1, 1280 / Math.max(innerWidth, innerHeight));
   const w = Math.round(innerWidth * k), h = Math.round(innerHeight * k);
@@ -113,13 +113,13 @@ function postcardImage(scene) {
   v.addColorStop(1, 'rgba(120,80,30,0.45)');
   x.fillStyle = v;
   x.fillRect(35, 35, iw, ih);
-  x.fillStyle = '#F3E6CC';
+  x.fillStyle = '#F3EBDD';
   x.textAlign = 'center';
   x.shadowColor = 'rgba(0,0,0,.35)';
   x.shadowBlur = 12;
-  x.font = 'italic 44px "Playfair Display"';
+  x.font = 'italic 46px "Cormorant Garamond", Georgia, serif';
   x.fillText('Greetings from', W / 2, H * 0.4);
-  x.font = '112px Shrikhand';
+  x.font = 'italic 500 120px "Cormorant Garamond", Georgia, serif';
   x.fillText('Incredible India', W / 2, H * 0.58, W - 160);
   x.shadowBlur = 0;
   x.fillStyle = '#E9DCC4';
@@ -128,12 +128,8 @@ function postcardImage(scene) {
   x.lineWidth = 3;
   x.strokeRect(W - 160, 70, 90, 110);
   x.fillStyle = '#B5523B';
-  x.font = '700 22px Inter';
+  x.font = '700 22px Inter, sans-serif';
   x.fillText('₹ 5', W - 115, 160);
-  for (let i = 0; i < 9000; i++) {
-    x.fillStyle = Math.random() < 0.5 ? 'rgba(80,50,20,.08)' : 'rgba(255,245,225,.08)';
-    x.fillRect(Math.random() * W, Math.random() * H, 2, 2);
-  }
   return c.toDataURL('image/jpeg', 0.85);
 }
 
@@ -144,7 +140,7 @@ function tearPaths() {
 }
 
 // Returns { done: Promise, cancel() }
-export function runOpening({ stamps, post, sound }) {
+export function runOpening({ stamps, sound }) {
   const root = document.querySelector('#opening');
   const q = (s) => root.querySelector(s);
   const cleanups = [];
@@ -230,10 +226,7 @@ export function runOpening({ stamps, post, sound }) {
         .fromTo(q('#punch'), { autoAlpha: 0, scale: 0.8 }, { autoAlpha: 1, scale: 1, duration: 0.8, ease: 'back.out(2)' }, 0.7);
       cleanups.push(holdGesture(q('#punch'), {
         duration: 1.6,
-        onProgress: (p) => {
-          gsap.set(card, { x: (Math.random() - 0.5) * p * 8, y: (Math.random() - 0.5) * p * 6 });
-          post.u.uAberration.value = post.baseAberration + p * 0.012;
-        },
+        onProgress: (p) => gsap.set(card, { x: (Math.random() - 0.5) * p * 8, y: (Math.random() - 0.5) * p * 6 }),
         onRelease: () => gsap.to(card, { x: 0, y: 0, duration: 0.3 }),
         onDone: punched,
       }));
@@ -241,14 +234,13 @@ export function runOpening({ stamps, post, sound }) {
       function punched() {
         if (cancelled) return;
         sound('punch');
-        post.pulse(0.03);
         gsap.timeline()
           .to(q('#punch'), { scale: 1.3, autoAlpha: 0, duration: 0.4, ease: 'power2.out' }, 0)
           .add(() => sound('tear'), 0.1)
           .to(L, { xPercent: -28, yPercent: 8, rotate: -14, autoAlpha: 0, duration: 1.2, ease: 'power3.in' }, 0.1)
           .to(R, { xPercent: 28, yPercent: 12, rotate: 16, autoAlpha: 0, duration: 1.2, ease: 'power3.in' }, 0.1)
           .to(q('.op-headline'), { autoAlpha: 0, y: -20, duration: 0.5 }, 0.1)
-          .fromTo(q('.op-ride'), { autoAlpha: 0, scale: 1.08 }, { autoAlpha: 1, scale: 1, duration: 1, ease: 'expo.out' }, 0.8)
+          .fromTo(q('.op-ride'), { autoAlpha: 0, scale: 1.04 }, { autoAlpha: 1, scale: 1, duration: 1.2, ease: 'expo.out' }, 0.8)
           .add(() => stamps.award('ticket', () => sound('stamp')), 1.0)
           .add(() => { cleanups.forEach((f) => f()); resolve(); }, 3.0)
           .to(root, { autoAlpha: 0, duration: 1.2, ease: 'power2.in' }, 3.0);
