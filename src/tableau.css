@@ -1,0 +1,31 @@
+/* ---------- Cinematic chapter: full-bleed shots, letterbox bars, one line of type ---------- */
+.letterbox {
+  position: fixed; left: 0; right: 0; z-index: 9; height: 0; background: #0b0705; pointer-events: none;
+  transition: height .9s cubic-bezier(.7, 0, .2, 1);
+}
+.letterbox--top { top: 0; }
+.letterbox--bottom { bottom: 0; }
+body.is-cinema .letterbox { height: 8vh; }
+
+/* The exhibit card becomes a film caption */
+.exhibit {
+  top: auto; bottom: calc(8vh + 5vh); left: calc(var(--edge) + 2vw + 48px); width: min(640px, 80vw);
+  padding: 0; border-radius: 0; background: none; box-shadow: none; color: var(--cream);
+  text-shadow: 0 2px 24px rgba(0, 0, 0, .7);
+}
+.exhibit h3 { margin: .3rem 0 .6rem; font-weight: 400; font-style: italic; font-size: clamp(2rem, 4.4vw, 3.8rem); line-height: 1.02; }
+.ex-num { opacity: .8; }
+.ex-text { max-width: 46ch; font-size: .95rem; opacity: .9; }
+.exhibit .link-btn { color: var(--marigold); }
+
+/* Title over the scene: lighter veil so the art breathes */
+.title-card { background: radial-gradient(ellipse at center, rgba(20, 12, 6, .28), transparent 65%); }
+
+/* The ritual sits on the scene's focal point: no heavy backdrop */
+.ritual { background: radial-gradient(circle at 50% 50%, transparent 0 20%, rgba(12, 8, 4, .5) 75%); }
+.ritual__verb { font-size: clamp(1.8rem, 4vw, 3.4rem); }
+
+@media (max-width: 700px) {
+  .exhibit { left: 0; right: 0; margin: 0 auto; padding: 0 6vw; bottom: calc(8vh + 4vh); width: 100%; }
+  body.is-cinema .letterbox { height: 6vh; }
+}
