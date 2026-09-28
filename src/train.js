@@ -1,53 +1,35 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Landscape } from './landscape.js';
 import { drawCover } from './fx.js';
+import { fitCamera } from './engine.js';
 
 // Camera poses inside the carriage
 const POSES = {
-  intro:   { x: 0, y: 1.3,  z: 1.7,  lx: 0, ly: 1.25, lz: -2 },
-  chapter: { x: 0, y: 1.32, z: -0.1, lx: 0, ly: 1.15, lz: -4 },
+  aisle:  { x: 0, y: 1.3,  z: 1.7,  lx: 0, ly: 1.25, lz: -2 },
+  window: { x: 0, y: 1.32, z: -0.1, lx: 0, ly: 1.15, lz: -4 },
 };
-const TRAVEL = 110; // world units the train travels during one stop
 
-export class World {
-  constructor(canvas) {
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    this.renderer.setSize(innerWidth, innerHeight);
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-
+export class Train {
+  constructor(env) {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color('#F6D9A8');
     this.scene.fog = new THREE.Fog('#F6D9A8', 30, 190);
-    const pmrem = new THREE.PMREMGenerator(this.renderer);
-    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environment = env;
     this.scene.environmentIntensity = 0.35;
 
-    this.camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.05, 400);
-    this.pose = { ...POSES.intro };
-    this.pointer = new THREE.Vector2();
+    this.camera = new THREE.PerspectiveCamera(50, 1, 0.05, 400);
+    this.pose = { ...POSES.aisle };
     this.parallax = new THREE.Vector2();
-
-    this.mode = 'idle'; // idle | intro | chapter
-    this.introSpeed = 0;
-    this.progress = 0;
-    this.smooth = 0;
-    this.distance = 0;
     this.speed = 0;
-    this.clock = new THREE.Clock();
+    this.distance = 0;
 
     this.landscape = new Landscape();
     this.scene.add(this.landscape.group);
     this.addLights();
     this.addCarriage();
-    this.resize();
-
-    addEventListener('resize', () => this.resize());
-    addEventListener('pointermove', (e) =>
-      this.pointer.set((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1));
+    this.addScreen();
   }
 
   addLights() {
@@ -77,7 +59,6 @@ export class World {
       g.add(m);
       return m;
     };
-
     const W = 1.6, H = 2.6, ZF = -2, ZB = 2.2;
 
     // Window wall with an opening x[-0.9, 0.9], y[0.8, 1.9]
@@ -85,8 +66,6 @@ export class World {
     box(W - 0.9, H, 0.1, panel, (0.9 + W) / 2, H / 2, ZF);
     box(1.8, 0.8, 0.1, panel, 0, 0.4, ZF);
     box(1.8, H - 1.9, 0.1, panel, 0, (1.9 + H) / 2, ZF);
-
-    // Window frame and brass sill
     box(1.9, 0.08, 0.16, wood, 0, 0.8, ZF + 0.02);
     box(1.9, 0.08, 0.16, wood, 0, 1.9, ZF + 0.02);
     box(0.08, 1.18, 0.16, wood, -0.95, 1.35, ZF + 0.02);
@@ -99,8 +78,6 @@ export class World {
     box(2 * W, 0.1, ZB - ZF, floor, 0, 0, (ZF + ZB) / 2);
     box(2 * W, 0.1, ZB - ZF, ceil, 0, H, (ZF + ZB) / 2);
     box(2 * W, H, 0.1, panel, 0, H / 2, ZB);
-
-    // Wooden rails and ceiling ribs
     for (const s of [-1, 1]) box(0.04, 0.06, ZB - ZF, wood, s * (W - 0.06), 1.75, (ZF + ZB) / 2);
     for (let z = ZF + 0.4; z < ZB; z += 0.6) box(2 * W, 0.06, 0.08, wood, 0, H - 0.06, z);
 
@@ -117,7 +94,6 @@ export class World {
       }
     }
 
-    // Ceiling lamp
     const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), new THREE.MeshBasicMaterial({ color: '#FFD9A0' }));
     bulb.position.set(0, 2.45, 0.2);
     g.add(bulb);
@@ -139,23 +115,16 @@ export class World {
     handle.position.set(0, 0.12, 0);
     handle.rotation.y = Math.PI / 2;
     suitcase.add(handle);
-    for (const z of [-0.15, 0.15]) {
-      const clasp = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.05, 0.06), brass);
-      clasp.position.set(0.28, 0.06, z);
-      suitcase.add(clasp);
-    }
 
-    // WANDERWORDS journal resting on the suitcase (cover changes per stop)
+    // WANDERWORDS journal on the suitcase: cover shows the next stop
     this.coverCanvas = document.createElement('canvas');
     this.coverCanvas.width = 720;
     this.coverCanvas.height = 1000;
     this.coverTex = new THREE.CanvasTexture(this.coverCanvas);
     this.coverTex.colorSpace = THREE.SRGBColorSpace;
-    this.coverTex.anisotropy = 8;
     const page = M('#f5ecd9');
     this.journalSide = M('#6B3A24');
     const cover = new THREE.MeshStandardMaterial({ map: this.coverTex, roughness: 0.6 });
-    // Box faces: +x, -x, +y (cover), -y, +z, -z
     const journal = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.03, 0.42),
       [page, this.journalSide, cover, this.journalSide, page, page]);
     journal.position.set(0.02, 0.135, 0.05);
@@ -163,63 +132,62 @@ export class World {
     suitcase.add(journal);
   }
 
-  applyBiome(cfg) {
+  // A screen just outside the window that plays the next city's real video
+  addScreen() {
+    this.screenMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, toneMapped: false, fog: false });
+    this.screen = new THREE.Mesh(new THREE.PlaneGeometry(3, 1.8), this.screenMat);
+    this.screen.position.set(0, 1.35, -2.6);
+    this.screen.visible = false;
+    this.scene.add(this.screen);
+  }
+
+  showWindowMedia(media) {
+    media.material = this.screenMat;
+    this.screenMat.map = media.texture;
+    this.screenMat.needsUpdate = true;
+    this.screen.visible = true;
+    media.play();
+    gsap.fromTo(this.screenMat, { opacity: 0 }, { opacity: 1, duration: 1.2, ease: 'power2.out' });
+  }
+
+  hideWindowMedia() {
+    gsap.killTweensOf(this.screenMat);
+    this.screenMat.opacity = 0;
+    this.screenMat.map = null;
+    this.screenMat.needsUpdate = true;
+    this.screen.visible = false;
+  }
+
+  setBiome(cfg) {
     this.landscape.setBiome(cfg);
     this.scene.background.set(cfg.sky);
     this.scene.fog.color.set(cfg.sky);
   }
 
-  setIntro(cfg) {
-    this.applyBiome(cfg);
-    this.landscape.setLandmark(null);
-  }
-
-  setChapter(i, ch) {
-    this.applyBiome(ch);
-    this.landscape.setLandmark(ch.landmark);
+  showJournal(ch, i) {
     drawCover(this.coverCanvas, ch, i);
     this.coverTex.needsUpdate = true;
     this.journalSide.color.set(ch.cover);
-    this.progress = 0;
-    this.smooth = 0;
-    this.distance = 0;
-    this.speed = 0;
   }
 
-  // Automatic intro ride: the train speeds up
-  startIntro() {
-    this.mode = 'intro';
-    gsap.fromTo(this, { introSpeed: 0 }, { introSpeed: 16, duration: 3, ease: 'power1.in' });
+  run(speed, duration = 2.5) {
+    gsap.to(this, { speed, duration, ease: 'power2.inOut', overwrite: true });
   }
 
-  // The train slows down at the first stop
-  arrive() {
-    gsap.to(this, { introSpeed: 0, duration: 2.2, ease: 'power2.out', overwrite: true });
+  setPose(name) {
+    gsap.killTweensOf(this.pose);
+    Object.assign(this.pose, POSES[name]);
   }
 
-  // Camera moves from the aisle up to the window
-  pushToWindow(duration = 2.2) {
-    return gsap.to(this.pose, { ...POSES.chapter, duration, ease: 'power2.inOut' });
+  moveTo(name, duration = 2.4) {
+    return gsap.to(this.pose, { ...POSES[name], duration, ease: 'power2.inOut' });
   }
 
-  tick() {
-    const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
-    const prev = this.distance;
+  update(dt, t, pointer) {
+    this.distance += this.speed * dt;
+    this.landscape.update(this.distance, 0);
 
-    if (this.mode === 'chapter') {
-      // Scroll drives the train
-      this.smooth += (this.progress - this.smooth) * Math.min(1, dt * 3);
-      this.distance = this.smooth * TRAVEL;
-    } else {
-      this.distance += this.introSpeed * dt;
-    }
-
-    const v = Math.min(60, Math.abs(this.distance - prev) / Math.max(dt, 1e-4));
-    this.speed += (v - this.speed) * Math.min(1, dt * 5);
-    this.landscape.update(this.distance, this.smooth);
-
-    // Mouse parallax + train sway that grows with speed
-    this.parallax.lerp(this.pointer, Math.min(1, dt * 3));
+    this.parallax.lerp(pointer, Math.min(1, dt * 3));
     const k = Math.min(1, this.speed / 16);
     const p = this.pose;
     this.camera.position.set(
@@ -230,16 +198,9 @@ export class World {
     this.camera.lookAt(p.lx + this.parallax.x * 0.35, p.ly - this.parallax.y * 0.18, p.lz);
     this.camera.rotateZ(Math.sin(t * 1.7) * 0.005 * k);
     this.lamp.intensity = this.lampBase + Math.sin(t * 23) * 0.4 * k;
-
-    this.renderer.render(this.scene, this.camera);
   }
 
-  resize() {
-    const aspect = innerWidth / innerHeight;
-    this.camera.aspect = aspect;
-    // Wider lens on portrait screens so the window still fits
-    this.camera.fov = aspect < 1 ? Math.min(80, (50 / aspect) * 0.75) : 50;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(innerWidth, innerHeight);
+  resize(aspect) {
+    fitCamera(this.camera, aspect);
   }
 }
