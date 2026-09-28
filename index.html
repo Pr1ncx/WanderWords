@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WANDERWORDS · India Rail Tour</title>
+  <title>WANDERWORDS · Ten stops. Ten stories. One India.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
 <body class="is-locked">
-  <!-- Rough painted edge filter for the frame -->
   <svg class="svg-defs" width="0" height="0" aria-hidden="true">
     <filter id="rough">
       <feTurbulence type="fractalNoise" baseFrequency="0.015 0.04" numOctaves="3" seed="4" result="noise" />
@@ -18,10 +17,14 @@
   </svg>
 
   <canvas id="webgl"></canvas>
-  <div id="frame"></div>
 
-  <!-- Rail tour badge -->
-  <a id="badge" aria-label="WanderWords India Rail Tour">
+  <!-- Painted frame + scalloped jharokha corners -->
+  <div id="frame"></div>
+  <div class="scallop scallop--tl"></div>
+  <div class="scallop scallop--br"></div>
+
+  <!-- Fixed controls -->
+  <a id="badge" class="ctrl" aria-label="WanderWords India Rail Tour">
     <svg viewBox="0 0 120 120">
       <defs><path id="ring" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" /></defs>
       <circle cx="60" cy="60" r="57" fill="#F3E6CC" />
@@ -33,10 +36,15 @@
       <text x="60" y="70" text-anchor="middle" font-family="Shrikhand" font-size="28" fill="#B5523B">WW</text>
     </svg>
   </a>
+  <button id="menuBtn" class="pill ctrl" aria-label="Open menu"><span>Menu</span><i class="burger"></i></button>
+  <button id="soundBtn" class="sound-btn ctrl is-muted" aria-label="Toggle music">♪</button>
+  <div class="ctrl-br ctrl">
+    <button id="ccBtn" class="pill-sm" aria-label="Toggle captions">CC</button>
+    <button id="replayBtn" class="pill-sm" aria-label="Replay chapter">↺</button>
+  </div>
+  <p id="cc" class="cc"></p>
 
-  <button id="soundBtn" class="sound-btn is-muted" aria-label="Toggle music">♪</button>
-
-  <!-- 1. Preloader -->
+  <!-- 1. Loader -->
   <div id="loader">
     <div class="mosaic mosaic--top"></div>
     <div class="loader__center">
@@ -53,46 +61,70 @@
     <div class="mosaic mosaic--bottom"></div>
   </div>
 
-  <!-- 2. Intro gate -->
+  <!-- 2. Cover gate -->
   <section id="intro">
     <div class="mosaic mosaic--top"></div>
     <div class="intro__card">
       <p class="eyebrow">WanderWords · Issue 01</p>
       <h1 class="intro__title"><em>The</em> INDIAN JOURNEY <em>begins</em></h1>
-      <p class="micro">Explore every stop and receive a special gift</p>
+      <p class="micro">Ten stops. Ten stories. One India.</p>
       <button class="btn btn--magnetic" id="start"><span>Start now</span></button>
     </div>
     <div class="mosaic mosaic--bottom"></div>
   </section>
 
-  <!-- 3. Train carriage intro -->
-  <div id="trainIntro">
-    <p class="caption">A journey, ten stops.</p>
-    <p class="caption">Next stop: Srinagar</p>
-    <button id="skipIntro" class="skip-intro">SKIP INTRO &gt;</button>
+  <!-- 3. Train overlay (intro + rides) -->
+  <div id="trainOverlay">
+    <p id="trainCaption" class="caption"></p>
+    <button id="skipBtn" class="skip-intro">SKIP INTRO &gt;</button>
   </div>
 
-  <!-- 4. Stops UI -->
-  <div id="ui">
-    <header class="chapter-head">
-      <p class="eyebrow" id="chapterNum">Stop 01 / 10</p>
-      <h2 class="chapter-title" id="chapterTitle"></h2>
-      <p class="micro" id="chapterTag"></p>
-    </header>
-    <article id="story" class="story">
-      <p class="story__num"></p>
+  <!-- 4. Chapter title card -->
+  <section id="titleCard" class="title-card">
+    <p class="eyebrow" id="tcNum">CHAPTER 01</p>
+    <h1 id="tcTitle" class="tc-title"></h1>
+    <p class="micro" id="tcCity"></p>
+    <button id="exploreBtn" class="explore-btn">EXPLORE &gt;</button>
+  </section>
+
+  <!-- 5. Room exploration UI -->
+  <div id="exploreUI">
+    <article id="exhibit" class="exhibit">
+      <p class="ex-num"></p>
       <h3></h3>
-      <p class="story__text"></p>
+      <p class="ex-text"></p>
+      <button id="viewBtn" class="link-btn"><span>View &gt;</span></button>
     </article>
-    <p id="hint" class="hint">Scroll to ride the train ↓</p>
-    <button id="nextCta" class="btn btn--magnetic next-cta"><span>Next stop →</span></button>
-    <nav id="steps"></nav>
+    <div id="dots" class="dots"></div>
+    <p id="hint" class="hint">Scroll to explore the room ↓</p>
+    <div id="endPanel" class="end-panel">
+      <p class="eyebrow">End of chapter</p>
+      <button id="readBtn" class="btn btn--magnetic"><span>Read the story</span></button>
+      <button id="nextBtn" class="btn btn--magnetic btn--solid"><span>Next stop →</span></button>
+    </div>
   </div>
 
-  <!-- Tunnel transition between stops -->
+  <!-- Overlays -->
+  <section id="article" class="overlay article" data-lenis-prevent>
+    <button id="articleClose" class="close-btn">Back to the room ✕</button>
+    <div class="article__inner"></div>
+  </section>
+
+  <section id="lightbox" class="overlay lightbox">
+    <button id="lbClose" class="close-btn">Close ✕</button>
+    <button id="lbPrev" class="lb-arrow lb-arrow--prev" aria-label="Previous">‹</button>
+    <div class="lb-body"></div>
+    <button id="lbNext" class="lb-arrow lb-arrow--next" aria-label="Next">›</button>
+  </section>
+
+  <nav id="menu" class="overlay menu" data-lenis-prevent>
+    <button id="menuClose" class="close-btn">Close ✕</button>
+    <div class="menu__body"></div>
+  </nav>
+
   <div id="tunnel"><p id="tunnelText"></p></div>
 
-  <!-- Final gift -->
+  <!-- Finale -->
   <section id="gift">
     <div class="mosaic mosaic--top"></div>
     <div class="intro__card">
