@@ -13,6 +13,19 @@ Every chapter needs **8 files** in `public/media/<folder>/`. Until a file exists
 | `05.webp` | Article section 1 | Landscape |
 | `06.webp` | Article section 2 | Landscape |
 
+## Optional: painted plates
+
+Each chapter's scenery is painted in code: sky, far hills, a landmark with trees, and foreground foliage. To use your own artwork instead, add any of these files to `public/media/<folder>/`. Each one replaces its layer when present.
+
+| File | Layer | Notes |
+|---|---|---|
+| `plate-bg.webp` | Sky | Opaque, wide (about 3000 x 1750) |
+| `plate-far.webp` | Distant hills / water | Transparent above the ridge line |
+| `plate-mid.webp` | Landmark, trees, ground | Transparent sky, horizon at about 57% down |
+| `plate-fg.webp` | Foreground foliage | Transparent; keep content in the bottom 40% |
+
+Public-domain museum scans of Indian miniatures and landscape paintings work well (for example The Met Open Access or Wikimedia Commons). Always check each file's licence and add it to `src/credits.js`.
+
 ## Where to find media
 
 - **Pexels** and **Unsplash**: free photos and videos, free to use. Crediting the author is appreciated.
