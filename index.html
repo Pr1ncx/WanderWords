@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WANDERWORDS · The Indian Journey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body class="is-locked">
+  <canvas id="webgl"></canvas>
+
+  <!-- 1. Preloader -->
+  <div id="loader">
+    <div class="mosaic mosaic--top"></div>
+    <div class="loader__center">
+      <p class="loader__word">loading</p>
+      <p class="loader__pct">0%</p>
+    </div>
+    <div class="loader__prompt">
+      <p class="micro">Activate sound for a better experience</p>
+      <div class="loader__actions">
+        <button class="btn" data-sound="on"><span>Sound on</span></button>
+        <button class="btn btn--ghost" data-sound="off"><span>Continue muted</span></button>
+      </div>
+      <button id="skip" class="skip">Skip intro</button>
+    </div>
+    <div class="mosaic mosaic--bottom"></div>
+  </div>
+
+  <!-- 2. Intro gate -->
+  <section id="intro">
+    <div class="mosaic mosaic--top"></div>
+    <div class="intro__card">
+      <p class="eyebrow">WanderWords · Issue 01</p>
+      <h1 class="intro__title"><em>The</em> INDIAN JOURNEY <em>begins</em></h1>
+      <p class="micro">Explore every chapter and receive a special gift</p>
+      <button class="btn btn--magnetic" id="start"><span>Start now</span></button>
+    </div>
+    <div class="mosaic mosaic--bottom"></div>
+  </section>
+
+  <!-- 3. Chapter UI -->
+  <div id="ui">
+    <header class="chapter-head">
+      <p class="eyebrow" id="chapterNum">Chapter 01 / 10</p>
+      <h2 class="chapter-title" id="chapterTitle"></h2>
+      <p class="micro" id="chapterTag"></p>
+    </header>
+    <div id="hotspots"></div>
+    <button id="nextCta" class="btn btn--magnetic next-cta"><span>Next →</span></button>
+    <nav id="steps"></nav>
+    <button id="soundToggle" class="icon-btn is-muted" aria-label="Toggle sound">♪</button>
+  </div>
+
+  <div id="curtain"></div>
+
+  <!-- Final gift -->
+  <section id="gift">
+    <div class="mosaic mosaic--top"></div>
+    <div class="intro__card">
+      <p class="eyebrow">Journey complete</p>
+      <h2 class="intro__title"><em>Your</em> POSTCARD <em>awaits</em></h2>
+      <p class="micro">Ten chapters. One India.</p>
+      <button class="btn btn--magnetic" id="download"><span>Download postcard</span></button>
+      <button class="btn btn--ghost" id="restart"><span>Travel again</span></button>
+    </div>
+    <div class="mosaic mosaic--bottom"></div>
+  </section>
+
+  <div id="scroll-space"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
