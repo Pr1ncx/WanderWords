@@ -1,48 +1,26 @@
 import * as THREE from 'three';
 
-// Painted placeholder shown until the real photo or video is added
-export function placeholderCanvas(title, path, accent = '#6B3A24') {
+// Shown until the real photo or video is added: a quiet black frame that names the missing file
+export function placeholderCanvas(title, path) {
   const c = document.createElement('canvas');
   c.width = 1280;
-  c.height = 800;
+  c.height = 720;
   const x = c.getContext('2d');
-  const g = x.createLinearGradient(0, 0, 1280, 800);
-  g.addColorStop(0, accent);
-  g.addColorStop(1, '#2A1A10');
-  x.fillStyle = g;
-  x.fillRect(0, 0, 1280, 800);
-  x.globalAlpha = 0.08;
-  x.fillStyle = '#F3E6CC';
-  for (let i = 0; i < 26; i++) {
-    x.save();
-    x.translate(Math.random() * 1280, Math.random() * 800);
-    x.rotate(-0.3 + Math.random() * 0.6);
-    x.fillRect(-200, -12, 400, 24);
-    x.restore();
-  }
-  x.globalAlpha = 1;
-  x.strokeStyle = 'rgba(243,230,204,.5)';
-  x.lineWidth = 3;
-  x.setLineDash([14, 10]);
-  x.strokeRect(40, 40, 1200, 720);
-  x.setLineDash([]);
-  x.fillStyle = '#F3E6CC';
+  x.fillStyle = '#0B0A09';
+  x.fillRect(0, 0, 1280, 720);
   x.textAlign = 'center';
-  x.font = '500 26px Inter';
-  x.fillText('WANDERWORDS · ADD YOUR MEDIA', 640, 300);
-  x.font = '72px Shrikhand';
-  x.fillText(title || 'Media', 640, 420, 1100);
-  x.font = '500 28px Inter';
-  x.globalAlpha = 0.75;
-  x.fillText(`public${path || ''}`, 640, 500, 1100);
-  x.globalAlpha = 1;
+  x.fillStyle = 'rgba(243, 235, 221, 0.5)';
+  x.font = 'italic 44px "Cormorant Garamond", Georgia, serif';
+  x.fillText(title || '', 640, 372, 1100);
+  x.fillStyle = 'rgba(243, 235, 221, 0.3)';
+  x.font = '500 16px Inter, sans-serif';
+  x.fillText(`Missing file · public${path || ''}`, 640, 420, 1100);
   return c;
 }
 
-export const placeholderURL = (title, path, accent) =>
-  placeholderCanvas(title, path, accent).toDataURL('image/jpeg', 0.82);
+export const placeholderURL = (title, path) => placeholderCanvas(title, path).toDataURL('image/jpeg', 0.85);
 
-// Crop a texture like CSS object-fit: cover
+// Crop a texture like CSS object-fit: cover (used where textures sit on fixed-size planes)
 function coverFit(tex, imageAspect, frameAspect) {
   tex.repeat.set(1, 1);
   tex.offset.set(0, 0);
@@ -65,8 +43,8 @@ function canvasTexture(canvas) {
 
 // Photo texture: placeholder first, swapped for the real image when it loads
 export function imageTexture(src, title, accent, frameAspect) {
-  const tex = canvasTexture(placeholderCanvas(title, src, accent));
-  coverFit(tex, 1.6, frameAspect);
+  const tex = canvasTexture(placeholderCanvas(title, src));
+  coverFit(tex, 16 / 9, frameAspect);
   const img = new Image();
   img.onload = () => {
     tex.image = img;
@@ -88,8 +66,8 @@ export function videoSource(src, title, accent, frameAspect) {
   video.crossOrigin = 'anonymous';
   video.src = src;
 
-  const placeholder = canvasTexture(placeholderCanvas(title, src, accent));
-  coverFit(placeholder, 1.6, frameAspect);
+  const placeholder = canvasTexture(placeholderCanvas(title, src));
+  coverFit(placeholder, 16 / 9, frameAspect);
   const vtex = new THREE.VideoTexture(video);
   vtex.colorSpace = THREE.SRGBColorSpace;
 

@@ -20,7 +20,7 @@ export function stampSVG(s) {
     <circle cx="60" cy="60" r="50" fill="none" stroke="currentColor" stroke-width="1" />
     <circle cx="60" cy="60" r="30" fill="none" stroke="currentColor" stroke-width="1.5" />
     <text font-family="Inter" font-weight="700" font-size="9" letter-spacing="1.6" fill="currentColor"><textPath href="#${id}">${label} · WANDERWORDS ·</textPath></text>
-    <text x="60" y="60" text-anchor="middle" font-family="Playfair Display" font-style="italic" font-size="14" fill="currentColor">${s.label.split(' ')[0]}</text>
+    <text x="60" y="60" text-anchor="middle" font-family="Cormorant Garamond" font-style="italic" font-size="17" fill="currentColor">${s.label.split(' ')[0]}</text>
     <text x="60" y="75" text-anchor="middle" font-family="Inter" font-weight="700" font-size="7" letter-spacing="1.5" fill="currentColor">2026</text>
   </svg>`;
 }
