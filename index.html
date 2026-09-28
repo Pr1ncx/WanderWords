@@ -14,6 +14,13 @@
       <feTurbulence type="fractalNoise" baseFrequency="0.015 0.04" numOctaves="3" seed="4" result="noise" />
       <feDisplacementMap in="SourceGraphic" in2="noise" scale="34" xChannelSelector="R" yChannelSelector="G" />
     </filter>
+    <!-- Rubber-stamp ink: slightly wobbly edges and missing ink -->
+    <filter id="inky">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="n" />
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.5" result="d" />
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.7" result="m" />
+      <feComposite in="d" in2="m" operator="in" />
+    </filter>
   </svg>
 
   <canvas id="webgl"></canvas>
@@ -38,7 +45,15 @@
   </a>
   <button id="menuBtn" class="pill ctrl" aria-label="Open menu"><span>Menu</span><i class="burger"></i></button>
   <button id="soundBtn" class="sound-btn ctrl is-muted" aria-label="Toggle music">♪</button>
+  <nav id="hud" class="hud ctrl" aria-label="Journey">
+    <ol class="hud__stops"></ol>
+    <div class="hud__bar" aria-hidden="true"><i></i></div>
+  </nav>
   <div class="ctrl-br ctrl">
+    <button id="stampsBtn" class="stamps" aria-label="Open your passport">
+      <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-width="8" /><circle cx="60" cy="60" r="30" fill="none" stroke="currentColor" stroke-width="5" /><circle cx="60" cy="60" r="10" fill="currentColor" /></svg>
+      <span class="stamps__num">00 / 12</span>
+    </button>
     <button id="ccBtn" class="pill-sm" aria-label="Toggle captions">CC</button>
     <button id="replayBtn" class="pill-sm" aria-label="Replay chapter">↺</button>
   </div>
@@ -61,16 +76,30 @@
     <div class="mosaic mosaic--bottom"></div>
   </div>
 
-  <!-- 2. Cover gate -->
-  <section id="intro">
-    <div class="mosaic mosaic--top"></div>
-    <div class="intro__card">
-      <p class="eyebrow">WanderWords · Issue 01</p>
-      <h1 class="intro__title"><em>The</em> INDIAN JOURNEY <em>begins</em></h1>
-      <p class="micro">Ten stops. Ten stories. One India.</p>
-      <button class="btn btn--magnetic" id="start"><span>Start now</span></button>
+  <!-- 2. Opening: wipe the fogged window, then punch your ticket -->
+  <section id="opening" aria-label="Boarding">
+    <canvas class="op-scene" aria-hidden="true"></canvas>
+    <canvas class="op-fog" aria-hidden="true"></canvas>
+    <div class="op-scrim" aria-hidden="true"></div>
+    <div class="op-cursor" aria-hidden="true"></div>
+    <div class="op-prompt">
+      <p class="micro">WanderWords · Issue 01 · Boarding</p>
+      <h1 class="op-title"><em>Wipe</em> the window</h1>
+      <p class="micro">Click and drag to clear the glass</p>
     </div>
-    <div class="mosaic mosaic--bottom"></div>
+    <div class="op-meter" aria-hidden="true"><i></i></div>
+    <button class="op-skip">Clear the glass for me</button>
+    <div class="op-postcard" aria-hidden="true">
+      <div class="op-card"><div class="op-half op-half--l"></div><div class="op-half op-half--r"></div></div>
+    </div>
+    <h2 class="op-headline"><em>You've seen</em> the postcard.</h2>
+    <div class="op-gate">
+      <button class="hold" id="punch" aria-label="Press and hold to punch your ticket">
+        <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="hold__track" cx="60" cy="60" r="52" /><circle class="hold__fill" cx="60" cy="60" r="52" /></svg>
+        <span>Press + hold<br />to punch<br />your ticket</span>
+      </button>
+    </div>
+    <h2 class="op-ride"><span><em>Now</em> ride it.</span></h2>
   </section>
 
   <!-- 3. Train overlay (intro + rides) -->
@@ -99,6 +128,7 @@
     <p id="hint" class="hint">Scroll to explore ↓</p>
     <div id="endPanel" class="end-panel">
       <p class="eyebrow">End of chapter</p>
+      <button id="ritualBtn" class="btn btn--ritual"><span>✦ Earn the stamp</span></button>
       <button id="readBtn" class="btn btn--magnetic"><span>Read the story</span></button>
       <button id="nextBtn" class="btn btn--magnetic btn--solid"><span>Next stop →</span></button>
     </div>
@@ -122,6 +152,27 @@
     <div class="menu__body"></div>
   </nav>
 
+  <!-- City ritual: one small interaction earns the chapter's stamp -->
+  <section id="ritual" class="ritual" aria-live="polite">
+    <p class="eyebrow ritual__eyebrow">A small ritual</p>
+    <h2 class="ritual__verb"></h2>
+    <div class="ritual__stage"></div>
+    <p class="micro ritual__hint"></p>
+    <button class="ritual__skip">Not now</button>
+  </section>
+
+  <section id="passport" class="overlay passport-overlay" data-lenis-prevent>
+    <button id="passportClose" class="close-btn">Close ✕</button>
+    <div>
+      <p class="eyebrow">WanderWords · Rail passport</p>
+      <h2 class="passport-overlay__title">Your stamps</h2>
+      <div id="passportGrid" class="passport"></div>
+      <p id="passportCount" class="micro passport__caption"></p>
+    </div>
+  </section>
+
+  <div id="stampLayer" aria-hidden="true"></div>
+
   <div id="tunnel"><p id="tunnelText"></p></div>
 
   <!-- Finale -->
@@ -129,8 +180,9 @@
     <div class="mosaic mosaic--top"></div>
     <div class="intro__card">
       <p class="eyebrow">Journey complete</p>
-      <h2 class="intro__title"><em>Your</em> POSTCARD <em>awaits</em></h2>
-      <p class="micro">Ten stops. One India.</p>
+      <h2 class="intro__title"><em>Your</em> PASSPORT <em>is full of stories</em></h2>
+      <div id="giftPassport" class="passport"></div>
+      <p id="giftCount" class="micro passport__caption"></p>
       <button class="btn btn--magnetic" id="download"><span>Download postcard</span></button>
       <button class="btn btn--ghost" id="restart"><span>Travel again</span></button>
     </div>
