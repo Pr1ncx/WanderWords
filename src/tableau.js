@@ -185,7 +185,7 @@ export class Tableau {
   // Exhibit 0 = hero video, 1-4 = photos
   buildShots() {
     this.shots = this.ch.exhibits.map((ex, k) => {
-      if (k === 0) {
+      if (ex.type === 'video') {
         const media = videoSource(ex.src, ex.title, this.ch.accent, this.aspect);
         this.medias.push(media);
         return { get texture() { return media.texture; } };

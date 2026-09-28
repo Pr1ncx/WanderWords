@@ -14,11 +14,14 @@ function chapter(id, name, title, tagline, look, exhibits, article) {
   return {
     id, name, title, tagline, ...look,
     coverImg: path(id, 'cover.webp'),
-    exhibits: exhibits.map(([t, text, caption], k) => ({
-      type: k === 0 ? 'video' : 'photo',
-      src: path(id, k === 0 ? 'hero.mp4' : `0${k}.webp`),
-      title: t, text, caption,
-    })),
+    exhibits: exhibits.map(([t, text, caption], k) => {
+      const isVideo = k === 0 || (id === 'srinagar' && k === 4);
+      return {
+        type: isVideo ? 'video' : 'photo',
+        src: path(id, k === 0 ? 'hero.mp4' : (isVideo ? `0${k}.mp4` : `0${k}.webp`)),
+        title: t, text, caption,
+      };
+    }),
     article: {
       ...article,
       sections: article.sections.map(([t, text], k) => ({ title: t, text, img: path(id, `0${k + 5}.webp`) })),

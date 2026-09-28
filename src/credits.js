@@ -4,7 +4,10 @@
 // Example:
 // srinagar: ['hero.mp4 · Video by Jane Doe on Pexels', '01.webp · Photo by John Roe on Unsplash'],
 export const CREDITS = {
-  srinagar: [],
+  srinagar: [
+    'hero.mp4 · Dal Lake in Winter by The Roots Of India (YouTube)',
+    '04.mp4 · Houseboats in Dal Lake by Travelogue (YouTube)',
+  ],
   manali: [],
   amritsar: [],
   jaipur: [],
