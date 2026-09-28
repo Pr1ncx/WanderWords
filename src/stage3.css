@@ -1,5 +1,5 @@
-/* Keep static decoration on its own compositor layer so it is never repainted */
-#frame, .scallop { will-change: transform; }
+/* Full-bleed layout: no frame around the site */
+#frame, .scallop { display: none; }
 
 /* ---------- Act I: the fogged window ---------- */
 #opening {
