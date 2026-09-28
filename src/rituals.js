@@ -1,17 +1,17 @@
 import gsap from 'gsap';
 import { holdGesture, rubGesture, spinGesture } from './gestures.js';
 
-// One small ritual per city. Completing it earns that city's passport stamp.
+// One small ritual per city, performed on the scene's focal point. Completing it earns the passport stamp.
 export const RITUALS = {
   srinagar: { verb: 'Ripple the lake', hint: 'Drag across the water', type: 'rub', icon: 'wave' },
-  manali: { verb: 'Brush off the snow', hint: 'Rub to clear it', type: 'rub', icon: 'snow' },
+  manali: { verb: 'Brush off the snow', hint: 'Rub to uncover the lantern', type: 'rub', icon: 'snow' },
   amritsar: { verb: 'Light the diya', hint: 'Press + hold', type: 'hold', icon: 'diya', grade: '#E0B040' },
   jaipur: { verb: 'Open the jharokha', hint: 'Tap both shutters', type: 'taps', count: 2, icon: 'shutter' },
   agra: { verb: 'Set the inlay', hint: 'Trace a circle around it', type: 'spin', turns: 1, icon: 'inlay' },
   goa: { verb: 'Bring down the sun', hint: 'Drag downwards', type: 'rub', axis: 'y', icon: 'sun', grade: '#E36F3C' },
   munnar: { verb: 'Two leaves and a bud', hint: 'Tap all three', type: 'taps', count: 3, icon: 'leaf' },
   gangtok: { verb: 'Spin the prayer wheel', hint: 'Drag in circles', type: 'spin', turns: 2, icon: 'wheel' },
-  kutch: { verb: 'Wait for the full moon', hint: 'Press + hold', type: 'hold', icon: 'moon', grade: '#C9D6E6' },
+  kutch: { verb: 'Raise the full moon', hint: 'Press + hold', type: 'hold', icon: 'moon', grade: '#C9D6E6' },
   shillong: { verb: 'Drop the needle', hint: 'Tap the record', type: 'taps', count: 1, icon: 'record' },
 };
 
@@ -39,8 +39,9 @@ function ringSetter(el) {
   return (p) => gsap.to(fill, { strokeDashoffset: CIRC * (1 - p), duration: 0.2, overwrite: true });
 }
 
-// Opens the ritual overlay for a chapter. onFinish(completed) is called exactly once.
-export function openRitual(ch, { onFinish }) {
+// Opens the ritual overlay for a chapter. onProgress(0..1) follows the gesture (the scene gathers light);
+// onFinish(completed) is called exactly once.
+export function openRitual(ch, { onFinish, onProgress = () => {} }) {
   const def = RITUALS[ch.id];
   if (!def) return null;
   const root = document.querySelector('#ritual');
@@ -58,6 +59,7 @@ export function openRitual(ch, { onFinish }) {
     onFinish(completed);
   };
   const finish = () => {
+    onProgress(1);
     gsap.to(stage.children, { scale: 1.15, autoAlpha: 0, duration: 0.6, ease: 'power2.out', stagger: 0.05 });
     close(true);
   };
@@ -65,18 +67,31 @@ export function openRitual(ch, { onFinish }) {
   if (def.type === 'hold') {
     stage.innerHTML = `<button class="hold hold--ritual" aria-label="${def.verb}: press and hold">${RING}${icon(def.icon)}</button>`;
     const btn = stage.firstElementChild;
-    stop = holdGesture(btn, { duration: 2, onProgress: (p) => btn.style.setProperty('--glow', p.toFixed(3)), onDone: finish });
+    stop = holdGesture(btn, {
+      duration: 2,
+      onProgress: (p) => { btn.style.setProperty('--glow', p.toFixed(3)); onProgress(p); },
+      onDone: finish,
+    });
   } else if (def.type === 'rub' || def.type === 'spin') {
     stage.innerHTML = `<div class="ritual__pad" tabindex="0" role="button" aria-label="${def.verb}">${RING}${icon(def.icon)}</div>`;
     const pad = stage.firstElementChild, set = ringSetter(pad), ic = pad.querySelector('.ritual__icon');
     if (def.type === 'rub') {
       stop = rubGesture(pad, {
         axis: def.axis,
-        onProgress: (p) => { set(p); gsap.to(ic, { y: def.axis === 'y' ? p * 16 : 0, rotate: def.axis ? 0 : Math.sin(p * 24) * 8, duration: 0.2 }); },
+        onProgress: (p) => {
+          set(p);
+          onProgress(p);
+          gsap.to(ic, { y: def.axis === 'y' ? p * 16 : 0, rotate: def.axis ? 0 : Math.sin(p * 24) * 8, duration: 0.2 });
+        },
         onDone: finish,
       });
     } else {
-      stop = spinGesture(pad, { turns: def.turns, onAngle: (a) => gsap.set(ic, { rotate: (a * 180) / Math.PI }), onProgress: set, onDone: finish });
+      stop = spinGesture(pad, {
+        turns: def.turns,
+        onAngle: (a) => gsap.set(ic, { rotate: (a * 180) / Math.PI }),
+        onProgress: (p) => { set(p); onProgress(p); },
+        onDone: finish,
+      });
     }
     pad.focus({ preventScroll: true });
   } else {
@@ -88,7 +103,9 @@ export function openRitual(ch, { onFinish }) {
         if (closed || b.classList.contains('is-done')) return;
         b.classList.add('is-done');
         gsap.fromTo(b, { scale: 0.85 }, { scale: 1.08, duration: 0.5, ease: 'back.out(3)' });
-        if (--left === 0) setTimeout(finish, 350);
+        left--;
+        onProgress((def.count - left) / def.count);
+        if (left === 0) setTimeout(finish, 350);
       };
     });
   }

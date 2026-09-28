@@ -1,0 +1,51 @@
+/* ---------- Cinematic chapters: one composed scene, full-bleed shots, letterbox bars, one line of type ---------- */
+.letterbox {
+  position: fixed; left: 0; right: 0; z-index: 9; height: 0; background: #0b0705; pointer-events: none;
+  transition: height .9s cubic-bezier(.7, 0, .2, 1);
+}
+.letterbox--top { top: 0; }
+.letterbox--bottom { bottom: 0; }
+body.is-cinema .letterbox { height: 8vh; }
+
+/* Title: a film credit low in the frame, so the scene's focal point stays clear */
+.title-card {
+  justify-content: flex-end; padding-bottom: 13vh;
+  background: linear-gradient(to top, rgba(12, 8, 4, .55), rgba(12, 8, 4, 0) 55%);
+}
+.tc-title {
+  margin: .6rem 0 .8rem; font-family: var(--serif); font-style: italic; font-weight: 400;
+  font-size: clamp(2.6rem, 7vw, 6.4rem); line-height: 1; letter-spacing: .01em;
+  text-shadow: 0 6px 40px rgba(0, 0, 0, .45);
+}
+.title-card .explore-btn { margin-top: 1.2rem; }
+
+/* The exhibit card becomes a single film caption */
+.exhibit {
+  top: auto; bottom: calc(8vh + 5vh); left: calc(var(--edge) + 2vw + 48px); width: min(640px, 80vw);
+  padding: 0; border-radius: 0; background: none; box-shadow: none; color: var(--cream);
+  text-shadow: 0 2px 24px rgba(0, 0, 0, .7);
+}
+.exhibit h3 { margin: .3rem 0 .4rem; font-weight: 400; font-style: italic; font-size: clamp(2rem, 4.4vw, 3.8rem); line-height: 1.02; }
+.ex-num { font-size: .62rem; opacity: .75; }
+.ex-text { display: none; }
+.exhibit .link-btn { margin-top: .4rem; color: var(--marigold); }
+.dots i { border-color: rgba(243, 230, 204, .7); }
+
+/* Ritual: the interaction sits exactly on the scene's focal point, the words frame it */
+.ritual { justify-content: center; background: radial-gradient(circle at 50% 50%, transparent 0 18%, rgba(12, 8, 4, .45) 80%); }
+.ritual__eyebrow, .ritual__verb, .ritual__hint, .ritual__skip { position: absolute; left: 0; right: 0; }
+.ritual__eyebrow { top: 15vh; }
+.ritual__verb { top: calc(15vh + 1.6rem); font-size: clamp(1.8rem, 4vw, 3.4rem); }
+.ritual__stage { margin: 0; }
+.ritual__hint { bottom: 19vh; }
+.ritual__skip { bottom: 13vh; margin: 0 auto; width: max-content; }
+.hold--ritual { background: rgba(255, 250, 240, .08); }
+.ritual__pad, .ritual__tap { background: rgba(255, 250, 240, .08); border-color: rgba(255, 250, 240, .35); }
+
+@media (max-width: 700px) {
+  .exhibit { left: 0; right: 0; margin: 0 auto; padding: 0 6vw; bottom: calc(8vh + 4vh); width: 100%; }
+  body.is-cinema .letterbox { height: 6vh; }
+  .title-card { padding-bottom: 16vh; }
+  .ritual__eyebrow { top: 11vh; }
+  .ritual__verb { top: calc(11vh + 1.6rem); }
+}

@@ -1,10 +1,13 @@
 import './style.css';
 import './stage3.css';
+import './tableau.css';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { Engine } from './engine.js';
 import { Train } from './train.js';
-import { Gallery } from './gallery.js';
+import { Tableau } from './tableau.js';
+import { SCENES } from './scenes.js';
+import { Soundscape } from './audio.js';
 import { CHAPTERS, INTRO_BIOME } from './chapters.js';
 import { CREDITS } from './credits.js';
 import { videoSource, placeholderURL } from './media.js';
@@ -24,6 +27,8 @@ const S = {
 };
 let engine, train, room, lenis, windowMedia, introTl, rideTl, stamps, opening;
 
+const gradeOf = (i) => (SCENES[CHAPTERS[i].id] || {}).grade || CHAPTERS[i].accent;
+
 // ---------- Missing media: swap in a painted placeholder ----------
 document.addEventListener('error', (e) => {
   const el = e.target;
@@ -40,33 +45,17 @@ document.addEventListener('error', (e) => {
   }
 }, true);
 
-// ---------- Sound (optional files, missing files fail silently) ----------
-const ambient = new Audio('/audio/ambient.mp3');
-ambient.loop = true;
-ambient.volume = 0;
-const SFX = {};
-for (const k of ['whoosh', 'punch', 'tear', 'stamp']) {
-  SFX[k] = new Audio(`/audio/${k}.mp3`);
-  SFX[k].preload = 'none';
-}
-const vol = { v: 0 };
+// ---------- Sound: a journey bed, one bed per city, one-shot effects (all files optional) ----------
+const sound = new Soundscape();
 
 function setSound(on) {
   S.soundOn = on;
   $('#soundBtn').classList.toggle('is-muted', !on);
-  if (on) ambient.play().catch(() => {});
-  gsap.to(vol, {
-    v: on ? 0.4 : 0, duration: on ? 2 : 0.6, overwrite: true,
-    onUpdate: () => (ambient.volume = vol.v),
-    onComplete: () => !on && ambient.pause(),
-  });
+  sound.setEnabled(on);
 }
 
 function sfx(name = 'whoosh') {
-  const a = SFX[name];
-  if (!S.soundOn || !a) return;
-  a.currentTime = 0;
-  a.play().catch(() => {});
+  sound.play(`/audio/${name}.mp3`);
 }
 
 // ---------- Captions (CC) ----------
@@ -92,6 +81,11 @@ function unlockScroll() {
 // Stop rendering WebGL while a full-screen layer hides the canvas
 function hide3D(on) {
   if (engine) engine.paused = on;
+}
+
+// Cinema bars top and bottom while exploring a chapter
+function cinema(on) {
+  document.body.classList.toggle('is-cinema', on);
 }
 
 function splitTitle(el, text) {
@@ -145,6 +139,15 @@ async function init() {
   });
 }
 
+// The scene's focal point (centre of the screen) is itself a button at the end of a chapter
+function onFocal(e) {
+  return Math.hypot(e.clientX - innerWidth / 2, e.clientY - innerHeight / 2) < Math.min(innerWidth, innerHeight) * 0.12;
+}
+function focalReady() {
+  const ch = CHAPTERS[S.current];
+  return room && room.progress > 0.93 && !!RITUALS[ch.id] && !stamps.has(ch.id);
+}
+
 function setupUI() {
   $$('.btn--magnetic').forEach((b) => magnetic(b));
 
@@ -188,20 +191,17 @@ function setupUI() {
   // Exhibit progress dots
   $('#dots').innerHTML = Array.from({ length: 5 }, () => '<i></i>').join('');
 
-  // Click photos and the hero video in 3D
+  // Click a full-screen shot to open it; click the focal point at the end to perform the ritual
   const canvas = $('#webgl');
-  canvas.addEventListener('click', () => {
+  canvas.addEventListener('click', (e) => {
     if (S.phase !== 'explore' || S.overlay || S.ritual || !room) return;
-    const k = room.pick(engine.ndc);
+    const k = room.pick();
     if (k >= 0) openLightbox(k);
+    else if (focalReady() && onFocal(e)) startRitual();
   });
-  let lastPick = 0;
-  canvas.addEventListener('pointermove', () => {
-    if (S.phase !== 'explore' || !room) { canvas.style.cursor = ''; return; }
-    const now = performance.now();
-    if (now - lastPick < 100) return; // raycasting on every move is wasted work
-    lastPick = now;
-    canvas.style.cursor = room.pick(engine.ndc) >= 0 ? 'pointer' : '';
+  canvas.addEventListener('pointermove', (e) => {
+    if (S.phase !== 'explore' || !room || S.ritual) { canvas.style.cursor = ''; return; }
+    canvas.style.cursor = room.pick() >= 0 || (focalReady() && onFocal(e)) ? 'pointer' : '';
   });
   addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
@@ -270,6 +270,7 @@ function rideTo(i, fromIntro = false) {
   closeOverlay(true);
   lockScroll();
   sfx();
+  sound.setBed(null);
   engine.post.pulse();
   engine.post.grade(ch.accent, 0.28);
 
@@ -338,15 +339,19 @@ function arrive(i) {
     .add(() => { S.arriving = false; S.busy = false; });
 }
 
+// A chapter: the city's cinematic scene
 function openRoom(i) {
   disposeRoom();
   S.current = i;
   S.visited.add(i);
   hide3D(false);
-  room = new Gallery(CHAPTERS[i], engine.env);
+  const ch = CHAPTERS[i];
+  room = new Tableau(ch, engine.env);
+  if (stamps.has(ch.id)) room.lit();
   engine.setView(room);
   engine.renderer.compile(room.scene, room.camera); // compile now, not on the first visible frame
-  engine.post.grade(CHAPTERS[i].room.trim, 0.4);
+  engine.post.grade(gradeOf(i), 0.3);
+  sound.setBed(`/audio/${ch.id}.mp3`);
   room.play();
   showTitle(i);
   renderHud();
@@ -367,19 +372,20 @@ function showTitle(i) {
   $('#tcCity').textContent = `${ch.name} · ${ch.tagline}`;
   $('#nextBtn span').textContent = next ? `Next stop: ${next.name} →` : 'Finish the journey →';
   updateRitualBtn();
-  const chars = splitTitle($('#tcTitle'), ch.title.toUpperCase());
+  const chars = splitTitle($('#tcTitle'), ch.title);
   gsap.set('#titleCard', { autoAlpha: 1, y: 0 });
-  gsap.timeline({ delay: 0.3 })
-    .fromTo('#tcNum', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.8 })
-    .fromTo(chars, { autoAlpha: 0, yPercent: 60, rotate: 6 },
-      { autoAlpha: 1, yPercent: 0, rotate: 0, duration: 1, stagger: 0.03, ease: 'expo.out' }, 0.2)
-    .fromTo(['#tcCity', '#exploreBtn'], { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.12 }, '-=0.5');
+  gsap.timeline({ delay: 0.6 })
+    .fromTo('#tcNum', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 1 })
+    .fromTo(chars, { autoAlpha: 0, yPercent: 40 },
+      { autoAlpha: 1, yPercent: 0, duration: 1.4, stagger: 0.035, ease: 'expo.out' }, 0.3)
+    .fromTo(['#tcCity', '#exploreBtn'], { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 1, stagger: 0.15 }, '-=0.6');
   cc(`${ch.name}. ${ch.tagline}.`);
 }
 
 function hideChapterUI() {
   gsap.set(['#titleCard', '#exploreUI', '#exhibit'], { autoAlpha: 0 });
   $('#endPanel').classList.remove('is-visible');
+  cinema(false);
   S.exhibit = -2;
 }
 
@@ -388,6 +394,7 @@ function explore() {
   if (S.phase !== 'title' || !room) return;
   S.phase = 'moving';
   sfx();
+  cinema(true);
   gsap.to('#titleCard', { autoAlpha: 0, y: -20, duration: 0.6, ease: 'power2.in' });
   room.enterExplore().then(() => {
     S.phase = 'explore';
@@ -404,7 +411,8 @@ function onScroll(p) {
   if (S.phase !== 'explore' || !room) return;
   room.progress = p;
   const f = p * 4, k = Math.round(f);
-  showExhibit(Math.abs(f - k) < 0.38 ? k : -1);
+  // Captions clear before the scene returns at the end of the chapter
+  showExhibit(p < 0.93 && Math.abs(f - k) < 0.38 ? k : -1);
   $$('#dots i').forEach((d, j) => d.classList.toggle('is-on', j <= k));
   $('#endPanel').classList.toggle('is-visible', p > 0.97);
   $('#hint').classList.toggle('is-hidden', p > 0.03);
@@ -416,7 +424,7 @@ function showExhibit(k) {
   S.exhibit = k;
   const card = $('#exhibit');
   gsap.to(card, {
-    autoAlpha: 0, x: -20, duration: 0.25, overwrite: true,
+    autoAlpha: 0, y: 10, duration: 0.3, overwrite: true,
     onComplete: () => {
       if (k < 0) { cc(''); return; }
       const e = CHAPTERS[S.current].exhibits[k];
@@ -424,13 +432,13 @@ function showExhibit(k) {
       card.querySelector('h3').textContent = e.title;
       card.querySelector('.ex-text').textContent = e.text;
       $('#viewBtn span').textContent = e.type === 'video' ? 'Watch >' : 'View photo >';
-      gsap.to(card, { autoAlpha: 1, x: 0, duration: 0.6, ease: 'expo.out' });
+      gsap.to(card, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'expo.out' });
       cc(e.caption);
     },
   });
 }
 
-// ---------- Rituals: one small interaction per city, earns its stamp ----------
+// ---------- Rituals: one interaction per city, on the scene's focal point; earns its stamp ----------
 function updateRitualBtn() {
   const ch = CHAPTERS[S.current], def = RITUALS[ch.id], btn = $('#ritualBtn');
   const show = !!def && !stamps.has(ch.id);
@@ -444,6 +452,7 @@ function startRitual() {
   lenis.stop();
   gsap.to('#exploreUI', { autoAlpha: 0, duration: 0.4 });
   S.ritual = openRitual(ch, {
+    onProgress: (p) => room && room.setCharge(p),
     onFinish: (completed) => {
       S.ritual = null;
       const back = () => {
@@ -453,12 +462,17 @@ function startRitual() {
         gsap.to('#exploreUI', { autoAlpha: 1, duration: 0.6 });
         if (!S.overlay) lenis.start();
       };
-      if (!completed) { back(); return; }
+      if (!completed) {
+        if (room) room.setCharge(0);
+        back();
+        return;
+      }
       const def = RITUALS[ch.id];
       engine.post.pulse(0.02);
+      sound.play(`/audio/${ch.id}-swell.mp3`, '/audio/swell.mp3');
       if (def.grade) {
-        engine.post.grade(def.grade, 0.55, 0.8);
-        gsap.delayedCall(2.6, () => room && engine.post.grade(CHAPTERS[S.current].room.trim, 0.4));
+        engine.post.grade(def.grade, 0.4, 0.8);
+        gsap.delayedCall(2.6, () => room && engine.post.grade(gradeOf(S.current), 0.3));
       }
       if (room) room.celebrate();
       stamps.award(ch.id, () => sfx('stamp')).then(back);
@@ -544,6 +558,7 @@ function goToChapter(k) {
 function replay() {
   if (!room || S.busy || S.ritual || !['explore', 'title'].includes(S.phase)) return;
   closeOverlay(true);
+  cinema(false);
   gsap.to('#exploreUI', { autoAlpha: 0, duration: 0.4 });
   lockScroll();
   S.phase = 'moving';
@@ -556,6 +571,7 @@ function finish() {
   S.busy = true;
   S.phase = 'gift';
   closeOverlay(true);
+  sound.setBed(null);
   $('#tunnelText').textContent = 'Journey complete';
   stamps.renderPassport($('#giftPassport'));
   $('#giftCount').textContent = `${stamps.count} of ${STAMPS.length} stamps collected`;
