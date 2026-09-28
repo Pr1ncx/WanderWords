@@ -1,11 +1,16 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { Landscape } from './landscape.js';
 import { drawCover } from './fx.js';
 
-// Camera path: wide view -> swoop -> cover close-up -> title -> charm macro -> pull back
-const CAM  = [[0, 5, 17], [7, 2.5, 10], [2.5, 1.2, 4.2], [-1.2, 0, 3.6], [0.6, -1.6, 2.6], [0, 0.2, 7.5]];
-const LOOK = [[0, -1, -8], [0, 0, -2], [0.6, 0.8, 0], [-0.6, -0.3, 0], [0.8, -2, 0], [0, -0.2, 0]];
+// Camera poses inside the carriage
+const POSES = {
+  intro:   { x: 0, y: 1.3,  z: 1.7,  lx: 0, ly: 1.25, lz: -2 },
+  chapter: { x: 0, y: 1.32, z: -0.1, lx: 0, ly: 1.15, lz: -4 },
+};
+const TRAVEL = 110; // world units the train travels during one stop
 
 export class World {
   constructor(canvas) {
@@ -15,236 +20,225 @@ export class World {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color('#6B3A24');
-    this.scene.fog = new THREE.Fog('#6B3A24', 10, 45);
+    this.scene.background = new THREE.Color('#F6D9A8');
+    this.scene.fog = new THREE.Fog('#F6D9A8', 30, 190);
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environmentIntensity = 0.35;
 
-    // Starts far away with a narrow lens, for the dolly-zoom intro
-    this.camera = new THREE.PerspectiveCamera(22, innerWidth / innerHeight, 0.1, 200);
-    this.camera.position.set(0, 1.5, 26);
-    this.target = new THREE.Vector3();
+    this.camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.05, 400);
+    this.pose = { ...POSES.intro };
+    this.pointer = new THREE.Vector2();
+    this.parallax = new THREE.Vector2();
 
-    this.mode = 'idle'; // idle | manual | rail
+    this.mode = 'idle'; // idle | intro | chapter
+    this.introSpeed = 0;
     this.progress = 0;
     this.smooth = 0;
-    this.side = 1;
-    this.drag = { active: false, px: 0, py: 0, vx: 0, vy: 0, rotX: 0, rotY: 0 };
-    this.hotspots = [];
+    this.distance = 0;
+    this.speed = 0;
     this.clock = new THREE.Clock();
-    this._v = new THREE.Vector3();
-    this._n = new THREE.Vector3();
-    this._c = new THREE.Vector3();
 
+    this.landscape = new Landscape();
+    this.scene.add(this.landscape.group);
     this.addLights();
-    this.addGround();
-    this.addParticles();
-    this.addMagazine();
-    this.bindDrag();
+    this.addCarriage();
+    this.resize();
+
     addEventListener('resize', () => this.resize());
+    addEventListener('pointermove', (e) =>
+      this.pointer.set((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1));
   }
 
   addLights() {
-    this.scene.add(new THREE.HemisphereLight('#fff1dc', '#3a1f10', 1.1));
-    const sun = new THREE.DirectionalLight('#ffd9a0', 2.4);
-    sun.position.set(5, 8, 6);
+    this.scene.add(new THREE.HemisphereLight('#ffe9c9', '#2a160c', 0.7));
+    const sun = new THREE.DirectionalLight('#fff0d0', 2.2);
+    sun.position.set(6, 12, 10);
     this.scene.add(sun);
+    this.lampBase = 8;
+    this.lamp = new THREE.PointLight('#ffb870', this.lampBase, 8, 1);
+    this.lamp.position.set(0, 2.35, 0.2);
+    this.scene.add(this.lamp);
   }
 
-  addGround() {
-    const g = new THREE.PlaneGeometry(80, 80, 80, 80);
-    const p = g.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), y = p.getY(i), d = Math.hypot(x, y);
-      // Gentle dunes near the centre, hills rising towards the horizon
-      p.setZ(i, (Math.sin(x * 0.25) + Math.cos(y * 0.2)) * 0.8 * Math.min(1, d / 8) + Math.max(0, d - 15) * 0.35);
+  addCarriage() {
+    const g = new THREE.Group();
+    this.scene.add(g);
+    const M = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.8, ...o });
+    const wood = M('#3A2416', { roughness: 0.6 });
+    const panel = M('#5A3822');
+    const plush = M('#5A2E22', { roughness: 1 });
+    const floor = M('#24160D');
+    const ceil = M('#2E1D12');
+    const brass = M('#C9A24A', { metalness: 1, roughness: 0.3 });
+    const box = (w, h, d, mat, x, y, z) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      m.position.set(x, y, z);
+      g.add(m);
+      return m;
+    };
+
+    const W = 1.6, H = 2.6, ZF = -2, ZB = 2.2;
+
+    // Window wall with an opening x[-0.9, 0.9], y[0.8, 1.9]
+    box(W - 0.9, H, 0.1, panel, -(0.9 + W) / 2, H / 2, ZF);
+    box(W - 0.9, H, 0.1, panel, (0.9 + W) / 2, H / 2, ZF);
+    box(1.8, 0.8, 0.1, panel, 0, 0.4, ZF);
+    box(1.8, H - 1.9, 0.1, panel, 0, (1.9 + H) / 2, ZF);
+
+    // Window frame and brass sill
+    box(1.9, 0.08, 0.16, wood, 0, 0.8, ZF + 0.02);
+    box(1.9, 0.08, 0.16, wood, 0, 1.9, ZF + 0.02);
+    box(0.08, 1.18, 0.16, wood, -0.95, 1.35, ZF + 0.02);
+    box(0.08, 1.18, 0.16, wood, 0.95, 1.35, ZF + 0.02);
+    box(1.9, 0.05, 0.25, brass, 0, 0.86, ZF + 0.1);
+
+    // Side walls, floor, ceiling, back wall
+    box(0.1, H, ZB - ZF, panel, -W, H / 2, (ZF + ZB) / 2);
+    box(0.1, H, ZB - ZF, panel, W, H / 2, (ZF + ZB) / 2);
+    box(2 * W, 0.1, ZB - ZF, floor, 0, 0, (ZF + ZB) / 2);
+    box(2 * W, 0.1, ZB - ZF, ceil, 0, H, (ZF + ZB) / 2);
+    box(2 * W, H, 0.1, panel, 0, H / 2, ZB);
+
+    // Wooden rails and ceiling ribs
+    for (const s of [-1, 1]) box(0.04, 0.06, ZB - ZF, wood, s * (W - 0.06), 1.75, (ZF + ZB) / 2);
+    for (let z = ZF + 0.4; z < ZB; z += 0.6) box(2 * W, 0.06, 0.08, wood, 0, H - 0.06, z);
+
+    // Facing benches with ribbed plush backrests
+    for (const s of [-1, 1]) {
+      box(0.75, 0.4, 2.4, wood, s * 1.2, 0.2, -0.7);
+      const cushion = new THREE.Mesh(new RoundedBoxGeometry(0.75, 0.14, 2.4, 3, 0.05), plush);
+      cushion.position.set(s * 1.2, 0.47, -0.7);
+      g.add(cushion);
+      for (let k = 0; k < 8; k++) {
+        const rib = new THREE.Mesh(new RoundedBoxGeometry(0.14, 0.85, 0.28, 3, 0.06), plush);
+        rib.position.set(s * 1.5, 0.98, -1.75 + k * 0.3);
+        g.add(rib);
+      }
     }
-    g.computeVertexNormals();
-    this.groundMat = new THREE.MeshStandardMaterial({ flatShading: true, roughness: 1 });
-    const ground = new THREE.Mesh(g, this.groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -3.2;
-    this.scene.add(ground);
-  }
 
-  addParticles() {
-    const n = 700, pos = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 40;
-      pos[i * 3 + 1] = Math.random() * 12 - 2;
-      pos[i * 3 + 2] = Math.random() * 30 - 20;
+    // Ceiling lamp
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), new THREE.MeshBasicMaterial({ color: '#FFD9A0' }));
+    bulb.position.set(0, 2.45, 0.2);
+    g.add(bulb);
+
+    // Vintage suitcase on the left seat
+    const tan = M('#B07A45', { roughness: 0.55 });
+    const strap = M('#6B3F22');
+    const suitcase = new THREE.Group();
+    suitcase.position.set(-1.15, 0.66, -1.0);
+    suitcase.rotation.y = 0.12;
+    g.add(suitcase);
+    suitcase.add(new THREE.Mesh(new RoundedBoxGeometry(0.55, 0.24, 0.8, 4, 0.04), tan));
+    for (const z of [-0.22, 0.22]) {
+      const st = new THREE.Mesh(new THREE.BoxGeometry(0.57, 0.25, 0.05), strap);
+      st.position.z = z;
+      suitcase.add(st);
     }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    this.particles = new THREE.Points(g, new THREE.PointsMaterial({
-      size: 0.05, color: '#F3E6CC', transparent: true, opacity: 0.8, depthWrite: false,
-    }));
-    this.scene.add(this.particles);
-  }
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.015, 8, 16, Math.PI), strap);
+    handle.position.set(0, 0.12, 0);
+    handle.rotation.y = Math.PI / 2;
+    suitcase.add(handle);
+    for (const z of [-0.15, 0.15]) {
+      const clasp = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.05, 0.06), brass);
+      clasp.position.set(0.28, 0.06, z);
+      suitcase.add(clasp);
+    }
 
-  addMagazine() {
-    this.book = new THREE.Group();
-    this.scene.add(this.book);
-
+    // WANDERWORDS journal resting on the suitcase (cover changes per stop)
     this.coverCanvas = document.createElement('canvas');
     this.coverCanvas.width = 720;
     this.coverCanvas.height = 1000;
     this.coverTex = new THREE.CanvasTexture(this.coverCanvas);
     this.coverTex.colorSpace = THREE.SRGBColorSpace;
     this.coverTex.anisotropy = 8;
+    const page = M('#f5ecd9');
+    this.journalSide = M('#6B3A24');
+    const cover = new THREE.MeshStandardMaterial({ map: this.coverTex, roughness: 0.6 });
+    // Box faces: +x, -x, +y (cover), -y, +z, -z
+    const journal = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.03, 0.42),
+      [page, this.journalSide, cover, this.journalSide, page, page]);
+    journal.position.set(0.02, 0.135, 0.05);
+    journal.rotation.y = -0.35;
+    suitcase.add(journal);
+  }
 
-    const front = new THREE.MeshStandardMaterial({ map: this.coverTex, roughness: 0.6 });
-    const pages = new THREE.MeshStandardMaterial({ color: '#f5ecd9', roughness: 0.9 });
-    this.spineMat = new THREE.MeshStandardMaterial({ roughness: 0.7 });
-    // Box faces: +x, -x, +y, -y, +z (front), -z (back)
-    this.book.add(new THREE.Mesh(new THREE.BoxGeometry(2.6, 3.6, 0.3),
-      [pages, this.spineMat, pages, pages, front, this.spineMat]));
+  applyBiome(cfg) {
+    this.landscape.setBiome(cfg);
+    this.scene.background.set(cfg.sky);
+    this.scene.fog.color.set(cfg.sky);
+  }
 
-    // Ribbon with gold charm (swings from its top)
-    this.charm = new THREE.Group();
-    this.charm.position.set(0.9, -1.8, 0.17);
-    this.book.add(this.charm);
-    this.ribbonMat = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide });
-    const ribbon = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.6), this.ribbonMat);
-    ribbon.position.y = -0.3;
-    this.charm.add(ribbon);
-    this.charmMat = new THREE.MeshStandardMaterial({
-      color: '#F2B632', metalness: 1, roughness: 0.25, emissive: '#F2B632', emissiveIntensity: 0,
-    });
-    this.orb = new THREE.Mesh(new THREE.SphereGeometry(0.18, 48, 48), this.charmMat);
-    this.orb.position.y = -0.6;
-    this.charm.add(this.orb);
+  setIntro(cfg) {
+    this.applyBiome(cfg);
+    this.landscape.setLandmark(null);
   }
 
   setChapter(i, ch) {
+    this.applyBiome(ch);
+    this.landscape.setLandmark(ch.landmark);
     drawCover(this.coverCanvas, ch, i);
     this.coverTex.needsUpdate = true;
-    this.spineMat.color.set(ch.cover);
-    this.ribbonMat.color.set(ch.accent);
-    this.scene.background.set(ch.bg);
-    this.scene.fog.color.set(ch.bg);
-    this.groundMat.color.set(ch.ground);
-
-    // Mirror the camera path on alternate chapters so each one feels different
-    this.side = i % 2 === 0 ? 1 : -1;
-    this.camRail = new THREE.CatmullRomCurve3(CAM.map(([x, y, z]) => new THREE.Vector3(x * this.side, y, z)));
-    this.lookRail = new THREE.CatmullRomCurve3(LOOK.map((p) => new THREE.Vector3(...p)));
-
+    this.journalSide.color.set(ch.cover);
     this.progress = 0;
     this.smooth = 0;
-    Object.assign(this.drag, { rotX: 0, rotY: 0, vx: 0, vy: 0 });
+    this.distance = 0;
+    this.speed = 0;
   }
 
-  setHotspots(items) {
-    this.hotspots = items.map((h) => ({ el: h.el, v: new THREE.Vector3(...h.pos) }));
+  // Automatic intro ride: the train speeds up
+  startIntro() {
+    this.mode = 'intro';
+    gsap.fromTo(this, { introSpeed: 0 }, { introSpeed: 16, duration: 3, ease: 'power1.in' });
   }
 
-  // Intro: push in while widening the lens (dolly zoom)
-  dollyIn() {
-    this.mode = 'manual';
-    this.target.set(0, 0, 0);
-    const pos = this.camRail.getPointAt(0), look = this.lookRail.getPointAt(0);
-    const tl = gsap.timeline({ onComplete: () => (this.mode = 'rail') });
-    tl.to(this.camera.position, { x: pos.x, y: pos.y, z: pos.z, duration: 2.6, ease: 'power3.inOut' }, 0)
-      .to(this.target, { x: look.x, y: look.y, z: look.z, duration: 2.6, ease: 'power3.inOut' }, 0)
-      .to(this.camera, {
-        fov: 45, duration: 2.6, ease: 'power3.inOut',
-        onUpdate: () => this.camera.updateProjectionMatrix(),
-      }, 0);
-    return tl;
+  // The train slows down at the first stop
+  arrive() {
+    gsap.to(this, { introSpeed: 0, duration: 2.2, ease: 'power2.out', overwrite: true });
   }
 
-  skipIntro() {
-    this.camera.fov = 45;
-    this.camera.updateProjectionMatrix();
-    this.mode = 'rail';
-  }
-
-  // Hotspot hover: charm bounces and glints
-  glint() {
-    gsap.fromTo(this.charmMat, { emissiveIntensity: 2 }, { emissiveIntensity: 0, duration: 0.8 });
-    gsap.fromTo(this.orb.scale, { x: 1.3, y: 1.3, z: 1.3 },
-      { x: 1, y: 1, z: 1, duration: 0.9, ease: 'elastic.out(1, 0.35)' });
-  }
-
-  bindDrag() {
-    const c = this.renderer.domElement, d = this.drag;
-    c.addEventListener('pointerdown', (e) => {
-      d.active = true;
-      d.px = e.clientX;
-      d.py = e.clientY;
-      c.setPointerCapture(e.pointerId);
-    });
-    c.addEventListener('pointermove', (e) => {
-      if (!d.active) return;
-      const dx = e.clientX - d.px, dy = e.clientY - d.py;
-      d.rotY += dx * 0.008;
-      d.rotX += dy * 0.005;
-      d.vx = dx * 0.008;
-      d.vy = dy * 0.005;
-      d.px = e.clientX;
-      d.py = e.clientY;
-    });
-    const up = () => (d.active = false);
-    c.addEventListener('pointerup', up);
-    c.addEventListener('pointercancel', up);
-  }
-
-  updateHotspots() {
-    const show = this.mode === 'rail' && this.smooth > 0.3 && this.smooth < 0.97;
-    this._n.set(0, 0, 1).applyQuaternion(this.book.quaternion); // cover normal
-    for (const h of this.hotspots) {
-      this._v.copy(h.v);
-      this.book.localToWorld(this._v);
-      const facing = this._c.copy(this.camera.position).sub(this._v).dot(this._n) > 0;
-      this._v.project(this.camera);
-      const x = (this._v.x * 0.5 + 0.5) * innerWidth;
-      const y = (-this._v.y * 0.5 + 0.5) * innerHeight;
-      h.el.style.transform = `translate(${x}px, ${y}px)`;
-      h.el.classList.toggle('is-hidden', !(show && facing));
-    }
+  // Camera moves from the aisle up to the window
+  pushToWindow(duration = 2.2) {
+    return gsap.to(this.pose, { ...POSES.chapter, duration, ease: 'power2.inOut' });
   }
 
   tick() {
     const dt = Math.min(this.clock.getDelta(), 0.05), t = this.clock.elapsedTime;
+    const prev = this.distance;
 
-    // Drag inertia
-    const d = this.drag;
-    if (!d.active) {
-      d.rotY += d.vx;
-      d.rotX += d.vy;
-      d.vx *= 0.94;
-      d.vy *= 0.94;
-      d.rotX *= 0.96;
-    }
-    d.rotX = THREE.MathUtils.clamp(d.rotX, -0.6, 0.6);
-
-    this.smooth += (this.progress - this.smooth) * Math.min(1, dt * 4);
-    const sway = Math.sin(this.smooth * Math.PI * 2) * 0.3 * this.side;
-    this.book.rotation.set(d.rotX, d.rotY + sway, 0);
-    this.book.position.y = Math.sin(t * 1.2) * 0.06;
-    this.charm.rotation.z = Math.sin(t * 1.8) * 0.12;
-    this.particles.rotation.y += dt * 0.02;
-    this.particles.position.y = Math.sin(t * 0.3) * 0.3;
-
-    if (this.mode === 'idle') {
-      this.camera.position.x = Math.sin(t * 0.25) * 0.8;
-      this.camera.lookAt(0, 0, 0);
-    } else if (this.mode === 'manual') {
-      this.camera.lookAt(this.target);
+    if (this.mode === 'chapter') {
+      // Scroll drives the train
+      this.smooth += (this.progress - this.smooth) * Math.min(1, dt * 3);
+      this.distance = this.smooth * TRAVEL;
     } else {
-      const p = THREE.MathUtils.clamp(this.smooth, 0, 1);
-      this.camRail.getPointAt(p, this.camera.position);
-      this.lookRail.getPointAt(p, this.target);
-      this.camera.lookAt(this.target);
+      this.distance += this.introSpeed * dt;
     }
+
+    const v = Math.min(60, Math.abs(this.distance - prev) / Math.max(dt, 1e-4));
+    this.speed += (v - this.speed) * Math.min(1, dt * 5);
+    this.landscape.update(this.distance, this.smooth);
+
+    // Mouse parallax + train sway that grows with speed
+    this.parallax.lerp(this.pointer, Math.min(1, dt * 3));
+    const k = Math.min(1, this.speed / 16);
+    const p = this.pose;
+    this.camera.position.set(
+      p.x + this.parallax.x * 0.12,
+      p.y - this.parallax.y * 0.06 + Math.sin(t * 11) * 0.005 * k + Math.sin(t * 1.3) * 0.003,
+      p.z,
+    );
+    this.camera.lookAt(p.lx + this.parallax.x * 0.35, p.ly - this.parallax.y * 0.18, p.lz);
+    this.camera.rotateZ(Math.sin(t * 1.7) * 0.005 * k);
+    this.lamp.intensity = this.lampBase + Math.sin(t * 23) * 0.4 * k;
 
     this.renderer.render(this.scene, this.camera);
-    this.updateHotspots();
   }
 
   resize() {
-    this.camera.aspect = innerWidth / innerHeight;
+    const aspect = innerWidth / innerHeight;
+    this.camera.aspect = aspect;
+    // Wider lens on portrait screens so the window still fits
+    this.camera.fov = aspect < 1 ? Math.min(80, (50 / aspect) * 0.75) : 50;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(innerWidth, innerHeight);
   }

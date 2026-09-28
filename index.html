@@ -3,13 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WANDERWORDS · The Indian Journey</title>
+  <title>WANDERWORDS · India Rail Tour</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
 <body class="is-locked">
+  <!-- Rough painted edge filter for the frame -->
+  <svg class="svg-defs" width="0" height="0" aria-hidden="true">
+    <filter id="rough">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015 0.04" numOctaves="3" seed="4" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="34" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </svg>
+
   <canvas id="webgl"></canvas>
+  <div id="frame"></div>
+
+  <!-- Rail tour badge -->
+  <a id="badge" aria-label="WanderWords India Rail Tour">
+    <svg viewBox="0 0 120 120">
+      <defs><path id="ring" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" /></defs>
+      <circle cx="60" cy="60" r="57" fill="#F3E6CC" />
+      <circle cx="60" cy="60" r="51" fill="none" stroke="#6B3A24" stroke-width="1.5" />
+      <circle cx="60" cy="60" r="34" fill="none" stroke="#6B3A24" stroke-width="1" />
+      <text font-family="Inter" font-weight="700" font-size="9.5" letter-spacing="2.2" fill="#6B3A24">
+        <textPath href="#ring">WANDERWORDS · INDIA RAIL TOUR · EST. 2026 ·</textPath>
+      </text>
+      <text x="60" y="70" text-anchor="middle" font-family="Shrikhand" font-size="28" fill="#B5523B">WW</text>
+    </svg>
+  </a>
+
+  <button id="soundBtn" class="sound-btn is-muted" aria-label="Toggle music">♪</button>
 
   <!-- 1. Preloader -->
   <div id="loader">
@@ -24,7 +49,6 @@
         <button class="btn" data-sound="on"><span>Sound on</span></button>
         <button class="btn btn--ghost" data-sound="off"><span>Continue muted</span></button>
       </div>
-      <button id="skip" class="skip">Skip intro</button>
     </div>
     <div class="mosaic mosaic--bottom"></div>
   </div>
@@ -35,26 +59,38 @@
     <div class="intro__card">
       <p class="eyebrow">WanderWords · Issue 01</p>
       <h1 class="intro__title"><em>The</em> INDIAN JOURNEY <em>begins</em></h1>
-      <p class="micro">Explore every chapter and receive a special gift</p>
+      <p class="micro">Explore every stop and receive a special gift</p>
       <button class="btn btn--magnetic" id="start"><span>Start now</span></button>
     </div>
     <div class="mosaic mosaic--bottom"></div>
   </section>
 
-  <!-- 3. Chapter UI -->
+  <!-- 3. Train carriage intro -->
+  <div id="trainIntro">
+    <p class="caption">A journey, ten stops.</p>
+    <p class="caption">Next stop: Srinagar</p>
+    <button id="skipIntro" class="skip-intro">SKIP INTRO &gt;</button>
+  </div>
+
+  <!-- 4. Stops UI -->
   <div id="ui">
     <header class="chapter-head">
-      <p class="eyebrow" id="chapterNum">Chapter 01 / 10</p>
+      <p class="eyebrow" id="chapterNum">Stop 01 / 10</p>
       <h2 class="chapter-title" id="chapterTitle"></h2>
       <p class="micro" id="chapterTag"></p>
     </header>
-    <div id="hotspots"></div>
-    <button id="nextCta" class="btn btn--magnetic next-cta"><span>Next →</span></button>
+    <article id="story" class="story">
+      <p class="story__num"></p>
+      <h3></h3>
+      <p class="story__text"></p>
+    </article>
+    <p id="hint" class="hint">Scroll to ride the train ↓</p>
+    <button id="nextCta" class="btn btn--magnetic next-cta"><span>Next stop →</span></button>
     <nav id="steps"></nav>
-    <button id="soundToggle" class="icon-btn is-muted" aria-label="Toggle sound">♪</button>
   </div>
 
-  <div id="curtain"></div>
+  <!-- Tunnel transition between stops -->
+  <div id="tunnel"><p id="tunnelText"></p></div>
 
   <!-- Final gift -->
   <section id="gift">
@@ -62,7 +98,7 @@
     <div class="intro__card">
       <p class="eyebrow">Journey complete</p>
       <h2 class="intro__title"><em>Your</em> POSTCARD <em>awaits</em></h2>
-      <p class="micro">Ten chapters. One India.</p>
+      <p class="micro">Ten stops. One India.</p>
       <button class="btn btn--magnetic" id="download"><span>Download postcard</span></button>
       <button class="btn btn--ghost" id="restart"><span>Travel again</span></button>
     </div>
