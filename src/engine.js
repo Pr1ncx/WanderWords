@@ -2,12 +2,14 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { PostFX } from './post.js';
 
-// One renderer, many views (train, rooms). Each view has scene, camera, update(), resize().
+// One renderer, many views (the train, a chapter's reel). Each view has scene, camera, update(), resize().
+// The canvas is sized by CSS to the picture inside the cinema frame; the renderer follows it.
+// Views with toneMapped === false (real footage) skip tone mapping so the footage keeps its own colour.
 export class Engine {
   constructor(canvas) {
-    // Antialiasing happens in the post-processing MSAA target
+    this.canvas = canvas;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, stencil: false, powerPreference: 'high-performance' });
-    this.maxRatio = Math.min(devicePixelRatio, 1.25);
+    this.maxRatio = Math.min(devicePixelRatio, 1.5);
     this.ratio = this.maxRatio;
     this.renderer.setPixelRatio(this.ratio);
     this.renderer.toneMapping = THREE.NeutralToneMapping;
@@ -17,31 +19,37 @@ export class Engine {
     pmrem.dispose();
     this.post = new PostFX(this.renderer);
 
-    this.pointer = new THREE.Vector2(); // -1..1, y down
-    this.ndc = new THREE.Vector2();     // -1..1, y up (for raycasting)
+    this.pointer = new THREE.Vector2(); // -1..1 across the picture, y down
     this.view = null;
     this.paused = false; // set while a full-screen layer hides the canvas
     this.clock = new THREE.Clock();
     this.perf = { frames: 0, slow: 0, good: 0 };
 
     addEventListener('pointermove', (e) => {
-      this.pointer.set((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1);
-      this.ndc.set(this.pointer.x, -this.pointer.y);
+      const r = canvas.getBoundingClientRect();
+      this.pointer.set(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1);
     }, { passive: true });
     addEventListener('resize', () => this.resize());
+    if ('ResizeObserver' in window) new ResizeObserver(() => this.resize()).observe(canvas);
     this.resize();
+  }
+
+  size() {
+    return [this.canvas.clientWidth || innerWidth, this.canvas.clientHeight || innerHeight];
   }
 
   setView(view) {
     this.view = view;
+    this.renderer.toneMapping = view.toneMapped === false ? THREE.NoToneMapping : THREE.NeutralToneMapping;
     this.perf.frames = this.perf.slow = 0;
     this.resize();
   }
 
   resize() {
-    this.renderer.setSize(innerWidth, innerHeight);
-    this.post.setSize(innerWidth, innerHeight);
-    if (this.view) this.view.resize(innerWidth / innerHeight);
+    const [w, h] = this.size();
+    this.renderer.setSize(w, h, false);
+    this.post.setSize(w, h);
+    if (this.view) this.view.resize(w / h);
   }
 
   tick() {
@@ -49,7 +57,7 @@ export class Engine {
     const dt = Math.min(raw, 0.05), t = this.clock.elapsedTime;
     if (!this.view || this.paused || document.hidden) return;
     this.view.update(dt, t, this.pointer);
-    this.post.render(this.view.scene, this.view.camera, dt, t);
+    this.post.render(this.view.scene, this.view.camera, dt);
     this.adapt(raw);
   }
 
@@ -60,11 +68,11 @@ export class Engine {
     p.frames++;
     if (raw > 1 / 45) p.slow++;
     if (p.frames < 90) return;
-    if (p.slow > 20 && this.ratio > 0.6) {
-      this.setRatio(Math.max(0.6, this.ratio - 0.2));
+    if (p.slow > 20 && this.ratio > 0.75) {
+      this.setRatio(Math.max(0.75, this.ratio - 0.25));
       p.good = 0;
     } else if (p.slow < 3 && this.ratio < this.maxRatio && ++p.good >= 4) {
-      this.setRatio(Math.min(this.maxRatio, this.ratio + 0.1));
+      this.setRatio(Math.min(this.maxRatio, this.ratio + 0.125));
       p.good = 0;
     }
     p.frames = p.slow = 0;
@@ -77,9 +85,9 @@ export class Engine {
   }
 }
 
-// Wider lens on portrait screens
+// Tighter lens on wide scope screens, wider lens on portrait screens
 export function fitCamera(camera, aspect) {
   camera.aspect = aspect;
-  camera.fov = aspect < 1 ? Math.min(80, (50 / aspect) * 0.75) : 50;
+  camera.fov = aspect < 1 ? Math.min(80, (50 / aspect) * 0.75) : aspect > 1.9 ? 38 : 50;
   camera.updateProjectionMatrix();
 }
