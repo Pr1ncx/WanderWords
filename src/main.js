@@ -1,4 +1,5 @@
 import './style.css';
+import './grain.css';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { Engine } from './engine.js';
@@ -102,6 +103,7 @@ async function init() {
   ]);
 
   engine = new Engine($('#webgl'));
+  engine.post.grade('#6B3A24', 0.3, 0);
   train = new Train(engine.env);
   train.setBiome(INTRO_BIOME);
   train.showJournal(CHAPTERS[0], 0);
@@ -231,6 +233,8 @@ function rideTo(i, fromIntro = false) {
   closeOverlay(true);
   lockScroll();
   sfx();
+  engine.post.pulse();
+  engine.post.grade(ch.accent, 0.28);
 
   rideTl = gsap.timeline();
   if (!fromIntro) {
@@ -284,6 +288,7 @@ function arrive(i) {
     .to('#tunnel', { autoAlpha: 1, duration: 0.6, ease: 'power2.in' }, 0)
     .add(() => {
       caption('');
+      engine.post.pulse(0.022);
       train.hideWindowMedia();
       if (windowMedia) { windowMedia.dispose(); windowMedia = null; }
       gsap.killTweensOf(train);
@@ -300,6 +305,7 @@ function openRoom(i) {
   S.current = i;
   room = new Room(CHAPTERS[i], engine.env);
   engine.setView(room);
+  engine.post.grade(CHAPTERS[i].room.trim, 0.4);
   room.play();
   showTitle(i);
 }
@@ -464,6 +470,8 @@ function finish() {
       engine.setView(train);
       train.setPose('window');
       train.speed = 4;
+      engine.post.grade('#2E3A6B', 0.45);
+      engine.post.pulse();
       lockScroll();
       gsap.set('#gift', { autoAlpha: 1 });
       cc('');

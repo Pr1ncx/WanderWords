@@ -98,14 +98,18 @@ export class Room {
     // Polished wooden plank floor
     const planks = TX.planks(room.floor);
     planks.repeat.set(3, 4.5);
+    const wear = TX.grime(1024, 6); // uneven oil and wear, so reflections break up naturally
+    wear.repeat.set(3, 4.5);
     const floor = this.add(new THREE.PlaneGeometry(12, 18),
-      new THREE.MeshPhysicalMaterial({ map: planks, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.1 }), 0, 0, -3);
+      new THREE.MeshPhysicalMaterial({ map: planks, roughnessMap: wear, roughness: 0.75, clearcoat: 0.35, clearcoatRoughness: 0.28 }), 0, 0, -3);
     floor.rotation.x = -Math.PI / 2;
 
     // Textured plaster walls
     const plaster = TX.plaster(room.wall);
     plaster.repeat.set(3, 1.2);
-    const wall = this.std({ map: plaster, roughness: 0.95 });
+    const relief = TX.grime(512, 10); // hand-trowelled relief
+    relief.repeat.set(3, 1.2);
+    const wall = this.std({ map: plaster, bumpMap: relief, bumpScale: 0.8, roughness: 0.95 });
     for (const [w, x, z, ry] of [[12, 0, -12, 0], [18, -6, -3, Math.PI / 2], [18, 6, -3, -Math.PI / 2], [12, 0, 6, Math.PI]]) {
       const m = this.add(new THREE.PlaneGeometry(w, H), wall, x, H / 2, z);
       m.rotation.y = ry;
@@ -233,7 +237,7 @@ export class Room {
     for (const x of [-3.4, 3.4]) {
       this.add(new THREE.CylinderGeometry(0.35, 0.28, 0.7, 16), this.std({ color: '#9C5A3C', roughness: 0.7 }), x, 0.35, -11.2);
       for (let k = 0; k < 5; k++) {
-        this.add(new THREE.IcosahedronGeometry(0.35, 0), this.std({ color: '#3E6B3A', flatShading: true }),
+        this.add(new THREE.IcosahedronGeometry(0.35, 3), this.std({ color: '#3E6B3A', roughness: 0.7 }),
           x + Math.cos(k * 1.3) * 0.2, 0.95 + k * 0.18, -11.2 + Math.sin(k * 1.3) * 0.2);
       }
     }
@@ -286,7 +290,10 @@ export class Room {
     this.scene.traverse((o) => {
       if (o.geometry) o.geometry.dispose();
       const mats = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
-      mats.forEach((m) => { if (m.map) m.map.dispose(); m.dispose(); });
+      mats.forEach((m) => {
+        ['map', 'roughnessMap', 'bumpMap'].forEach((k) => m[k] && m[k].dispose());
+        m.dispose();
+      });
     });
   }
 
