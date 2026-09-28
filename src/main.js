@@ -1,5 +1,5 @@
 import './style.css';
-import './grain.css';
+import './stage3.css';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { Engine } from './engine.js';
@@ -10,13 +10,19 @@ import { CREDITS } from './credits.js';
 import { videoSource, placeholderURL } from './media.js';
 import { renderArticle, renderLightbox, renderMenu, pad } from './ui.js';
 import { splitChars, magnetic, drawPostcard } from './fx.js';
+import { Stamps, STAMPS } from './stamps.js';
+import { runOpening } from './opening.js';
+import { openRitual, RITUALS } from './rituals.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 
 // phase: loader | gate | intro | ride | title | moving | explore | gift
-const S = { phase: 'loader', current: 0, target: 0, busy: false, arriving: false, soundOn: false, cc: false, ccText: '', exhibit: -2, overlay: null, lb: 0 };
-let engine, train, room, lenis, windowMedia, introTl, rideTl;
+const S = {
+  phase: 'loader', current: 0, target: 0, busy: false, arriving: false, soundOn: false, cc: false, ccText: '',
+  exhibit: -2, overlay: null, lb: 0, ritual: null, visited: new Set(),
+};
+let engine, train, room, lenis, windowMedia, introTl, rideTl, stamps, opening;
 
 // ---------- Missing media: swap in a painted placeholder ----------
 document.addEventListener('error', (e) => {
@@ -38,7 +44,11 @@ document.addEventListener('error', (e) => {
 const ambient = new Audio('/audio/ambient.mp3');
 ambient.loop = true;
 ambient.volume = 0;
-const whoosh = new Audio('/audio/whoosh.mp3');
+const SFX = {};
+for (const k of ['whoosh', 'punch', 'tear', 'stamp']) {
+  SFX[k] = new Audio(`/audio/${k}.mp3`);
+  SFX[k].preload = 'none';
+}
 const vol = { v: 0 };
 
 function setSound(on) {
@@ -52,10 +62,11 @@ function setSound(on) {
   });
 }
 
-function sfx() {
-  if (!S.soundOn) return;
-  whoosh.currentTime = 0;
-  whoosh.play().catch(() => {});
+function sfx(name = 'whoosh') {
+  const a = SFX[name];
+  if (!S.soundOn || !a) return;
+  a.currentTime = 0;
+  a.play().catch(() => {});
 }
 
 // ---------- Captions (CC) ----------
@@ -76,6 +87,11 @@ function lockScroll() {
 function unlockScroll() {
   document.body.classList.remove('is-locked');
   lenis.start();
+}
+
+// Stop rendering WebGL while a full-screen layer hides the canvas
+function hide3D(on) {
+  if (engine) engine.paused = on;
 }
 
 function splitTitle(el, text) {
@@ -109,14 +125,16 @@ async function init() {
   train.showJournal(CHAPTERS[0], 0);
   engine.setView(train);
   engine.renderer.compile(train.scene, train.camera);
+  hide3D(true); // the loader and opening cover the canvas
   gsap.ticker.add(() => engine.tick());
 
-  lenis = new Lenis({ lerp: 0.08 });
+  lenis = new Lenis({ lerp: 0.1 });
   lenis.stop();
   gsap.ticker.add((t) => lenis.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
   lenis.on('scroll', (l) => onScroll(l.progress));
 
+  stamps = new Stamps($('#stampsBtn'), $('#stampLayer'));
   setupUI();
   creep.kill();
   gsap.to(counter, {
@@ -132,7 +150,6 @@ function setupUI() {
 
   $('[data-sound="on"]').onclick = () => { setSound(true); openGate(); };
   $('[data-sound="off"]').onclick = () => { setSound(false); openGate(); };
-  $('#start').onclick = startJourney;
   $('#skipBtn').onclick = skip;
   $('#soundBtn').onclick = () => setSound(!S.soundOn);
   $('#ccBtn').onclick = () => { S.cc = !S.cc; $('#ccBtn').classList.toggle('is-active', S.cc); refreshCC(); };
@@ -142,15 +159,18 @@ function setupUI() {
   $('#exploreBtn').onclick = explore;
   $('#viewBtn').onclick = () => openLightbox(S.exhibit);
   $('#readBtn').onclick = openArticle;
+  $('#ritualBtn').onclick = startRitual;
   $('#nextBtn').onclick = () => (S.current < CHAPTERS.length - 1 ? rideTo(S.current + 1) : finish());
   $('#articleClose').onclick = closeOverlay;
   $('#lbClose').onclick = closeOverlay;
+  $('#passportClose').onclick = closeOverlay;
+  $('#stampsBtn').onclick = openPassport;
   $('#lbPrev').onclick = () => openLightbox((S.lb + 4) % 5);
   $('#lbNext').onclick = () => openLightbox((S.lb + 1) % 5);
   $('#download').onclick = () => {
     const a = document.createElement('a');
     a.download = 'wanderwords-postcard.png';
-    a.href = drawPostcard(CHAPTERS).toDataURL('image/png');
+    a.href = drawPostcard(CHAPTERS, stamps.list()).toDataURL('image/png');
     a.click();
   };
   $('#restart').onclick = () => rideTo(0);
@@ -159,44 +179,58 @@ function setupUI() {
   $('#menu .menu__body').innerHTML = renderMenu(CHAPTERS, CREDITS);
   $$('[data-go]').forEach((b) => (b.onclick = () => { toggleMenu(false); goToChapter(+b.dataset.go); }));
 
+  // HUD: one stop per chapter
+  $('#hud .hud__stops').innerHTML = CHAPTERS.map((ch, k) =>
+    `<li><button data-hud="${k}" data-name="${pad(k + 1)} · ${ch.name}" aria-label="Go to ${ch.name}"></button></li>`).join('');
+  $$('[data-hud]').forEach((b) => (b.onclick = () => goToChapter(+b.dataset.hud)));
+  renderHud();
+
   // Exhibit progress dots
   $('#dots').innerHTML = Array.from({ length: 5 }, () => '<i></i>').join('');
 
   // Click photos and the hero video in 3D
   const canvas = $('#webgl');
   canvas.addEventListener('click', () => {
-    if (S.phase !== 'explore' || S.overlay || !room) return;
+    if (S.phase !== 'explore' || S.overlay || S.ritual || !room) return;
     const k = room.pick(engine.ndc);
     if (k >= 0) openLightbox(k);
   });
+  let lastPick = 0;
   canvas.addEventListener('pointermove', () => {
     if (S.phase !== 'explore' || !room) { canvas.style.cursor = ''; return; }
+    const now = performance.now();
+    if (now - lastPick < 100) return; // raycasting on every move is wasted work
+    lastPick = now;
     canvas.style.cursor = room.pick(engine.ndc) >= 0 ? 'pointer' : '';
   });
   addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    if (S.overlay) closeOverlay();
+    if (S.ritual) S.ritual.close();
+    else if (S.overlay) closeOverlay();
     else toggleMenu(false);
   });
 }
 
-// ---------- 2. Cover gate ----------
+// ---------- HUD ----------
+function renderHud() {
+  const started = !['loader', 'gate'].includes(S.phase);
+  $$('[data-hud]').forEach((b, k) => {
+    b.classList.toggle('is-current', started && k === S.current);
+    b.classList.toggle('is-visited', S.visited.has(k));
+    b.classList.toggle('is-stamped', stamps.has(CHAPTERS[k].id));
+  });
+}
+
+// ---------- 2. Opening: wipe the window, punch the ticket ----------
 function openGate() {
   S.phase = 'gate';
   gsap.to('#loader', { autoAlpha: 0, duration: 1 });
   gsap.to('.ctrl', { autoAlpha: 1, duration: 0.8, delay: 0.6, stagger: 0.08 });
-  gsap.set('#intro', { autoAlpha: 1 });
-  gsap.timeline({ delay: 0.3 })
-    .from('#intro .mosaic--top', { yPercent: -100, duration: 1, ease: 'expo.out' }, 0)
-    .from('#intro .mosaic--bottom', { yPercent: 100, duration: 1, ease: 'expo.out' }, 0)
-    .from('#intro .intro__card > *', { y: 40, autoAlpha: 0, stagger: 0.12, duration: 1.2, ease: 'expo.out' }, 0.2);
-}
-
-function startJourney() {
-  $('#start').disabled = true;
-  sfx();
-  gsap.to('#intro', { autoAlpha: 0, scale: 1.08, filter: 'blur(14px)', duration: 1.2, ease: 'power3.in' });
-  runIntro();
+  opening = runOpening({ stamps, post: engine.post, sound: sfx });
+  opening.done.then(() => {
+    opening = null;
+    if (S.phase === 'gate') runIntro();
+  });
 }
 
 // ---------- 3. Train intro (automatic) ----------
@@ -214,6 +248,8 @@ function caption(text) {
 
 function runIntro() {
   S.phase = 'intro';
+  hide3D(false);
+  renderHud();
   $('#skipBtn').textContent = 'SKIP INTRO >';
   gsap.to('#trainOverlay', { autoAlpha: 1, duration: 1, delay: 0.6 });
   train.run(16, 3);
@@ -226,6 +262,7 @@ function runIntro() {
 // ---------- Train ride to a stop: real video in the window ----------
 function rideTo(i, fromIntro = false) {
   if (S.busy && !fromIntro) return;
+  if (S.ritual) S.ritual.close();
   S.busy = true;
   S.phase = 'ride';
   S.target = i;
@@ -243,6 +280,7 @@ function rideTo(i, fromIntro = false) {
       .add(() => {
         hideChapterUI();
         gsap.set('#gift', { autoAlpha: 0 });
+        hide3D(false);
         disposeRoom();
         engine.setView(train);
         train.setPose('window');
@@ -274,7 +312,7 @@ function skip() {
   else if (S.phase === 'ride') arrive(S.target);
 }
 
-// Tunnel into the chapter's room
+// Tunnel into the chapter
 function arrive(i) {
   if (S.arriving) return;
   S.arriving = true;
@@ -303,11 +341,15 @@ function arrive(i) {
 function openRoom(i) {
   disposeRoom();
   S.current = i;
+  S.visited.add(i);
+  hide3D(false);
   room = new Gallery(CHAPTERS[i], engine.env);
   engine.setView(room);
+  engine.renderer.compile(room.scene, room.camera); // compile now, not on the first visible frame
   engine.post.grade(CHAPTERS[i].room.trim, 0.4);
   room.play();
   showTitle(i);
+  renderHud();
 }
 
 function disposeRoom() {
@@ -324,6 +366,7 @@ function showTitle(i) {
   $('#tcNum').textContent = `CHAPTER ${pad(i + 1)}`;
   $('#tcCity').textContent = `${ch.name} · ${ch.tagline}`;
   $('#nextBtn span').textContent = next ? `Next stop: ${next.name} →` : 'Finish the journey →';
+  updateRitualBtn();
   const chars = splitTitle($('#tcTitle'), ch.title.toUpperCase());
   gsap.set('#titleCard', { autoAlpha: 1, y: 0 });
   gsap.timeline({ delay: 0.3 })
@@ -340,7 +383,7 @@ function hideChapterUI() {
   S.exhibit = -2;
 }
 
-// ---------- 5. Explore the room ----------
+// ---------- 5. Explore the chapter ----------
 function explore() {
   if (S.phase !== 'title' || !room) return;
   S.phase = 'moving';
@@ -356,6 +399,7 @@ function explore() {
   });
 }
 
+const hudBar = () => $('#hud .hud__bar i');
 function onScroll(p) {
   if (S.phase !== 'explore' || !room) return;
   room.progress = p;
@@ -364,6 +408,7 @@ function onScroll(p) {
   $$('#dots i').forEach((d, j) => d.classList.toggle('is-on', j <= k));
   $('#endPanel').classList.toggle('is-visible', p > 0.97);
   $('#hint').classList.toggle('is-hidden', p > 0.03);
+  hudBar().style.transform = `scaleY(${p.toFixed(3)})`;
 }
 
 function showExhibit(k) {
@@ -385,7 +430,43 @@ function showExhibit(k) {
   });
 }
 
-// ---------- Overlays: lightbox + article ----------
+// ---------- Rituals: one small interaction per city, earns its stamp ----------
+function updateRitualBtn() {
+  const ch = CHAPTERS[S.current], def = RITUALS[ch.id], btn = $('#ritualBtn');
+  const show = !!def && !stamps.has(ch.id);
+  btn.style.display = show ? '' : 'none';
+  if (show) btn.querySelector('span').textContent = `✦ ${def.verb}`;
+}
+
+function startRitual() {
+  if (S.ritual || !room || S.phase !== 'explore') return;
+  const ch = CHAPTERS[S.current];
+  lenis.stop();
+  gsap.to('#exploreUI', { autoAlpha: 0, duration: 0.4 });
+  S.ritual = openRitual(ch, {
+    onFinish: (completed) => {
+      S.ritual = null;
+      const back = () => {
+        updateRitualBtn();
+        renderHud();
+        if (S.phase !== 'explore') return;
+        gsap.to('#exploreUI', { autoAlpha: 1, duration: 0.6 });
+        if (!S.overlay) lenis.start();
+      };
+      if (!completed) { back(); return; }
+      const def = RITUALS[ch.id];
+      engine.post.pulse(0.02);
+      if (def.grade) {
+        engine.post.grade(def.grade, 0.55, 0.8);
+        gsap.delayedCall(2.6, () => room && engine.post.grade(CHAPTERS[S.current].room.trim, 0.4));
+      }
+      if (room) room.celebrate();
+      stamps.award(ch.id, () => sfx('stamp')).then(back);
+    },
+  });
+}
+
+// ---------- Overlays: lightbox, article, passport ----------
 function openLightbox(k) {
   if (k < 0 || !room) return;
   S.lb = k;
@@ -399,23 +480,31 @@ function openArticle() {
   openOverlay('#article');
 }
 
+function openPassport() {
+  if (['loader', 'gate'].includes(S.phase) || S.ritual) return;
+  stamps.renderPassport($('#passportGrid'));
+  $('#passportCount').textContent = `${stamps.count} of ${STAMPS.length} stamps collected`;
+  openOverlay('#passport');
+}
+
 function openOverlay(sel) {
   if (S.overlay === sel) return;
   if (S.overlay) gsap.set(S.overlay, { autoAlpha: 0 });
   S.overlay = sel;
   lenis.stop();
   if (room) room.pause();
-  gsap.fromTo(sel, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5 });
+  gsap.fromTo(sel, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, onComplete: () => S.overlay === sel && hide3D(true) });
 }
 
 function closeOverlay(instant) {
   if (!S.overlay) return;
   const sel = S.overlay;
   S.overlay = null;
+  if (S.phase !== 'gift') hide3D(false);
   $(sel).querySelectorAll('video').forEach((v) => v.pause());
   gsap.to(sel, { autoAlpha: 0, duration: instant === true ? 0 : 0.4 });
   if (room) room.play();
-  if (S.phase === 'explore') lenis.start();
+  if (S.phase === 'explore' && !S.ritual) lenis.start();
 }
 
 // ---------- Menu ----------
@@ -426,15 +515,21 @@ function toggleMenu(force) {
   if (open === isOpen) return;
   menu.classList.toggle('is-open', open);
   $('#menuBtn').classList.toggle('is-active', open);
-  gsap.to(menu, { autoAlpha: open ? 1 : 0, duration: 0.45 });
+  gsap.to(menu, { autoAlpha: open ? 1 : 0, duration: 0.45, onComplete: () => open && hide3D(true) });
   if (open) lenis.stop();
-  else if (S.phase === 'explore' && !S.overlay) lenis.start();
+  else {
+    hide3D(S.phase === 'gift' || !!S.overlay || S.phase === 'gate');
+    if (S.phase === 'explore' && !S.overlay && !S.ritual) lenis.start();
+  }
 }
 
 function goToChapter(k) {
   if (S.phase === 'loader') return;
+  if (S.ritual) S.ritual.close();
   if (S.phase === 'gate') {
-    gsap.to('#intro', { autoAlpha: 0, duration: 0.6 });
+    if (opening) { opening.cancel(); opening = null; }
+    gsap.to('#opening', { autoAlpha: 0, duration: 0.6 });
+    hide3D(false);
     S.phase = 'intro';
     arrive(k);
     return;
@@ -447,7 +542,7 @@ function goToChapter(k) {
 
 // Replay the current chapter from its title card
 function replay() {
-  if (!room || S.busy || !['explore', 'title'].includes(S.phase)) return;
+  if (!room || S.busy || S.ritual || !['explore', 'title'].includes(S.phase)) return;
   closeOverlay(true);
   gsap.to('#exploreUI', { autoAlpha: 0, duration: 0.4 });
   lockScroll();
@@ -455,13 +550,15 @@ function replay() {
   room.backToTitle().then(() => showTitle(S.current));
 }
 
-// ---------- Finale ----------
+// ---------- Finale: your passport and postcard ----------
 function finish() {
   if (S.busy) return;
   S.busy = true;
   S.phase = 'gift';
   closeOverlay(true);
   $('#tunnelText').textContent = 'Journey complete';
+  stamps.renderPassport($('#giftPassport'));
+  $('#giftCount').textContent = `${stamps.count} of ${STAMPS.length} stamps collected`;
   gsap.timeline()
     .to('#tunnel', { autoAlpha: 1, duration: 0.6 })
     .add(() => {
@@ -471,13 +568,18 @@ function finish() {
       train.setPose('window');
       train.speed = 4;
       engine.post.grade('#2E3A6B', 0.45);
-      engine.post.pulse();
       lockScroll();
       gsap.set('#gift', { autoAlpha: 1 });
+      hide3D(true); // the finale covers the canvas
       cc('');
+      renderHud();
     })
     .to('#tunnel', { autoAlpha: 0, duration: 0.8 }, '+=0.3')
-    .from('#gift .intro__card > *', { y: 40, autoAlpha: 0, stagger: 0.12, duration: 1.2, ease: 'expo.out' }, '-=0.4')
+    .from('#gift .intro__card > *', { y: 40, autoAlpha: 0, stagger: 0.1, duration: 1.1, ease: 'expo.out' }, '-=0.4')
+    .add(() => {
+      const inked = $$('#giftPassport .stamp');
+      if (inked.length) gsap.from(inked, { scale: 2, autoAlpha: 0, stagger: 0.1, duration: 0.45, ease: 'power4.in', onStart: () => sfx('stamp') });
+    }, '-=0.6')
     .add(() => (S.busy = false));
 }
 
