@@ -4,10 +4,11 @@ import { CHAPTERS } from './chapters.js';
 const KEY = 'ww-stamps';
 const pad2 = (n) => String(n).padStart(2, '0');
 
-// Every stamp on the journey: boarding, the punched ticket, then one per city
+// Every stamp on the journey: the two prologue stamps, then one per city.
+// The prologue IDs ('window', 'ticket') are kept from the old opening so saved stamps still count.
 export const STAMPS = [
-  { id: 'window', label: 'Window Seat', sub: 'Boarded', color: '#2E3A6B' },
-  { id: 'ticket', label: 'Ticket Punched', sub: 'All aboard', color: '#B5523B' },
+  { id: 'window', label: 'First Glimpse', sub: 'You looked up', color: '#2E3A6B' },
+  { id: 'ticket', label: 'Journey Approved', sub: 'Passport cleared', color: '#B5523B' },
   ...CHAPTERS.map((c) => ({ id: c.id, label: c.name, sub: c.tagline, color: c.accent })),
 ];
 
