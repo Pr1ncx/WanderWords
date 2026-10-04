@@ -120,6 +120,8 @@ async function init() {
     document.fonts.load('italic 500 40px "Cormorant Garamond"'),
     document.fonts.load('500 22px Inter'),
     document.fonts.load('700 22px Inter'),
+    document.fonts.load('400 30px Caveat'),
+    document.fonts.load('600 30px Caveat'),
     new Promise((r) => setTimeout(r, 1500)),
   ]);
 
@@ -207,18 +209,15 @@ function renderJourney() {
   });
 }
 
-// ---------- 2. Prologue: The Letter, passport stamp, train wipe ----------
+// ---------- 2. Prologue: the desk, the letter, the passport, the train ----------
 function openGate() {
   S.phase = 'gate';
   gsap.to('#loader', { autoAlpha: 0, duration: 1 });
   gsap.to('.ctrl', { autoAlpha: 1, duration: 0.8, delay: 0.6, stagger: 0.06 });
-  label('Boarding');
+  label('Prologue');
   showSkip(true, 'Skip prologue →');
-  opening = runPrologue({
-    stamps,
-    sound: sfx,
-    reveal: () => hide3D(false),
-  });
+  // reveal() fires while the train covers the screen: start drawing the carriage underneath it
+  opening = runPrologue({ stamps, sound: sfx, reveal: () => hide3D(false) });
   opening.done.then(() => {
     opening = null;
     showSkip(false);
@@ -289,9 +288,10 @@ function rideTo(i, fromIntro = false) {
 
 function skip() {
   if (S.phase === 'gate') {
-    if (opening && opening.skip) opening.skip();
-    else if (opening) { opening.cancel(); opening = null; runIntro(); }
-  } else if (S.phase === 'intro') arrive(0);
+    if (opening) { opening.skip(); showSkip(false); }
+    return;
+  }
+  if (S.phase === 'intro') arrive(0);
   else if (S.phase === 'ride') arrive(S.target);
 }
 
