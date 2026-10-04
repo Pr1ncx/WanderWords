@@ -13,7 +13,7 @@ import { renderArticle, renderLightbox, renderMenu, pad } from './ui.js';
 import { drawPostcard } from './fx.js';
 import { holdGesture } from './gestures.js';
 import { Stamps, STAMPS } from './stamps.js';
-import { runOpening } from './opening.js';
+import { runPrologue } from './prologue.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
@@ -207,15 +207,21 @@ function renderJourney() {
   });
 }
 
-// ---------- 2. Opening: wipe the window, punch the ticket ----------
+// ---------- 2. Prologue: The Letter, passport stamp, train wipe ----------
 function openGate() {
   S.phase = 'gate';
   gsap.to('#loader', { autoAlpha: 0, duration: 1 });
   gsap.to('.ctrl', { autoAlpha: 1, duration: 0.8, delay: 0.6, stagger: 0.06 });
   label('Boarding');
-  opening = runOpening({ stamps, sound: sfx });
+  showSkip(true, 'Skip prologue →');
+  opening = runPrologue({
+    stamps,
+    sound: sfx,
+    reveal: () => hide3D(false),
+  });
   opening.done.then(() => {
     opening = null;
+    showSkip(false);
     if (S.phase === 'gate') runIntro();
   });
 }
@@ -282,7 +288,10 @@ function rideTo(i, fromIntro = false) {
 }
 
 function skip() {
-  if (S.phase === 'intro') arrive(0);
+  if (S.phase === 'gate') {
+    if (opening && opening.skip) opening.skip();
+    else if (opening) { opening.cancel(); opening = null; runIntro(); }
+  } else if (S.phase === 'intro') arrive(0);
   else if (S.phase === 'ride') arrive(S.target);
 }
 

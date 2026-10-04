@@ -38,8 +38,10 @@ See **[MEDIA_GUIDE.md](MEDIA_GUIDE.md)**: it lists every file, media dimensions,
 | `src/reel.js` | Cinema frame chapter footage reel: 2.39:1 letterbox, Lenis scroll dissolves, push-in |
 | `src/train.js` | 3D train carriage model, procedural motion, window video integration |
 | `src/landscape.js` | Procedural 3D landscape scenery outside the train window |
-| `src/opening.js` | Act I opening: fogged glass wipe, sacred geometry overlay, ticket punch |
-| `src/painter.js` | Canvas painting rendered behind the fogged window in the opening |
+| `src/prologue.js` | Prologue "The Letter": grey desk, fogged window wipe, letter from last passenger, passport stamp, train wipe |
+| `src/prologue-art.js` | Inline SVG art: desk scene, wax seal, margin sketches, passport watermark, train |
+| `src/prologue.css` | Styles for the prologue sequence |
+| `src/painter.js` | Canvas painting rendered behind the fogged window |
 | `src/chapters.js` | All 10 stops' editorial content, quotes, and media manifests |
 | `src/stamps.js` | Passport stamps, counter, SVG stamping animations, and passport modal |
 | `src/audio.js` | Web Audio soundscape: journey bed, city ambient tracks, and sound effects |
