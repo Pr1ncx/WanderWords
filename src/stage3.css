@@ -1,85 +1,10 @@
 /* Full-bleed layout: no frame around the site */
 #frame, .scallop { display: none; }
 
-/* ---------- Act I: the fogged window ---------- */
+/* ---------- Prologue container (scenes are styled in src/prologue.css) ---------- */
 #opening {
   position: fixed; inset: 0; z-index: 40; overflow: hidden; visibility: hidden; opacity: 0;
   touch-action: none; cursor: none; background: var(--ink); user-select: none; -webkit-user-select: none;
-}
-/* Restore cursor once fog is gone and ticket is clickable */
-#opening.ticket-phase { cursor: auto; }
-#opening.ticket-phase .op-postcard { pointer-events: auto; z-index: 6; }
-#opening.ticket-phase .op-card { cursor: pointer; pointer-events: auto; }
-#opening .op-scene {
-  position: absolute;
-  left: -6%; top: -6%;
-  width: 112%; height: 112%;
-  display: block;
-  z-index: 0;
-  object-fit: cover;
-  pointer-events: none;
-  will-change: transform;
-}
-#opening .op-fog {
-  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
-  z-index: 2;
-}
-
-/* Renaissance Sacred Geometry Grid (Shopify Editions Aesthetic) */
-.op-lines {
-  position: absolute; inset: 0; z-index: 1;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  visibility: hidden; opacity: 0;
-  /* Ultra-sharp hairline drafting — strictly no drop shadow or blur */
-}
-
-/* Subject parallax wrapper — disabled for now */
-.op-subject-wrap {
-  display: none !important;
-  position: absolute; z-index: 3;
-  bottom: 0; left: 0; right: 0;
-  display: flex; justify-content: center;
-  pointer-events: none; user-select: none;
-  will-change: transform;
-}
-/* Static subject image */
-.op-subject {
-  display: block;
-  height: min(84vh, 780px); width: auto;
-  filter: drop-shadow(-18px 28px 40px rgba(0,0,0,.6));
-}
-
-/* "Begin the Journey" gate button */
-.op-start-btn {
-  position: absolute; left: 50%; bottom: 12vh; z-index: 6;
-  transform: translateX(-50%);
-  padding: 1.1rem 3rem; border-radius: 999px;
-  background: var(--cream); color: var(--earth);
-  font-family: var(--serif); font-size: 1.1rem; font-style: italic;
-  letter-spacing: .08em; cursor: pointer;
-  box-shadow: 0 8px 40px rgba(0,0,0,.35);
-  transition: transform .3s, box-shadow .3s, background .3s;
-  visibility: hidden; opacity: 0;
-}
-.op-start-btn:hover {
-  transform: translateX(-50%) scale(1.06);
-  box-shadow: 0 0 48px rgba(242,182,50,.6), 0 8px 40px rgba(0,0,0,.4);
-  background: var(--marigold);
-}
-
-/* Stamp hint below the ticket */
-.op-stamp-hint {
-  position: absolute; left: 50%; bottom: 7vh; z-index: 6;
-  transform: translateX(-50%);
-  font-family: var(--serif); font-style: italic; font-size: .95rem;
-  color: var(--cream); letter-spacing: .06em;
-  text-shadow: 0 2px 12px rgba(0,0,0,.6);
-  visibility: hidden; opacity: 0; pointer-events: none;
-  animation: hint-pulse 2s ease-in-out infinite;
-}
-@keyframes hint-pulse {
-  0%, 100% { opacity: 1; } 50% { opacity: 0.45; }
 }
 
 /* Halftone / canvas grain overlay — makes photos feel like old ink posters */
@@ -89,55 +14,6 @@
   background-size: 4px 4px;
   mix-blend-mode: multiply;
 }
-.op-scrim {
-  position: absolute; inset: 0; z-index: 5; visibility: hidden; opacity: 0; pointer-events: none;
-  background: radial-gradient(ellipse at 50% 55%, rgba(20, 12, 6, .25), rgba(20, 12, 6, .78));
-}
-.op-cursor {
-  position: fixed; left: 0; top: 0; z-index: 6; width: 64px; height: 64px; margin: -32px 0 0 -32px;
-  border: 1.5px solid rgba(42, 26, 16, .75); border-radius: 50%; pointer-events: none; visibility: hidden; opacity: 0;
-  transition: width .3s, height .3s, margin .3s, background .3s;
-}
-#opening.is-wiping .op-cursor { width: 96px; height: 96px; margin: -48px 0 0 -48px; background: rgba(255, 255, 255, .12); }
-.op-prompt {
-  position: absolute; left: 0; right: 0; top: 50%; z-index: 2; transform: translateY(-50%);
-  text-align: center; color: var(--ink); pointer-events: none;
-}
-.op-title { margin: 1rem 0; font-family: var(--serif); font-weight: 400; font-size: clamp(3rem, 9vw, 8rem); line-height: .95; }
-.op-title em, .op-headline em, .op-ride em { font-style: italic; }
-.op-meter {
-  position: absolute; left: 50%; bottom: calc(var(--edge) + 10vh); z-index: 2; width: 180px; height: 2px;
-  margin-left: -90px; background: rgba(42, 26, 16, .2); visibility: hidden; opacity: 0;
-}
-.op-meter i { display: block; height: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left; }
-.op-skip {
-  display: none !important;
-  position: absolute; left: 0; right: 0; margin: 0 auto; width: max-content; bottom: calc(var(--edge) + 5vh); z-index: 2;
-  cursor: pointer; font-size: .68rem; font-weight: 700; letter-spacing: .25em; text-transform: uppercase; color: var(--ink);
-  visibility: hidden; opacity: 0;
-}
-.op-skip:hover, .op-skip:focus-visible { text-decoration: underline; }
-.op-postcard { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; pointer-events: none; }
-.op-card {
-  position: relative; width: min(760px, 82vw, 92vh); aspect-ratio: 1200 / 760; visibility: hidden; opacity: 0;
-  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .45));
-}
-.op-half { position: absolute; inset: 0; background-size: cover; background-position: center; will-change: transform; }
-.op-headline {
-  position: absolute; left: 0; right: 0; top: calc(var(--edge) + 6vh); z-index: 3; text-align: center; pointer-events: none;
-  font-family: var(--serif); font-weight: 400; font-size: clamp(2rem, 5vw, 4.2rem); color: var(--cream);
-  text-shadow: 0 4px 30px rgba(0, 0, 0, .5); visibility: hidden; opacity: 0;
-}
-.op-gate {
-  position: absolute; left: 0; right: 0; bottom: calc(var(--edge) + 4vh); z-index: 3;
-  display: flex; justify-content: center; visibility: hidden; opacity: 0; cursor: auto;
-}
-.op-ride {
-  position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; pointer-events: none;
-  font-family: var(--serif); font-weight: 400; font-size: clamp(3.4rem, 11vw, 10rem); color: var(--cream);
-  text-shadow: 0 10px 60px rgba(0, 0, 0, .6); visibility: hidden; opacity: 0;
-}
-
 /* ---------- Press + hold ---------- */
 .hold {
   position: relative; width: 132px; height: 132px; border-radius: 50%; display: grid; place-items: center;
