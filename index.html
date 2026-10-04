@@ -76,22 +76,18 @@
     <div class="op-scrim" aria-hidden="true"></div>
     <div class="op-cursor" aria-hidden="true"></div>
     <div class="op-prompt">
-      <p class="micro">WanderWords · Issue 01 · Boarding</p>
       <h1 class="op-title"><em>Wipe</em> the window</h1>
-      <p class="micro">Click and drag to clear the glass</p>
     </div>
     <div class="op-meter" aria-hidden="true"><i></i></div>
     <button class="op-skip">Clear the glass for me</button>
+    <!-- Start Journey gate: appears after fog is fully wiped -->
+    <button class="op-start-btn" aria-label="Start your journey">Begin the Journey →</button>
     <div class="op-postcard" aria-hidden="true">
       <div class="op-card"><div class="op-half op-half--l"></div><div class="op-half op-half--r"></div></div>
     </div>
-    <h2 class="op-headline"><em>You've seen</em> the postcard.</h2>
-    <div class="op-gate">
-      <button class="hold" id="punch" aria-label="Press and hold to punch your ticket">
-        <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="hold__track" cx="60" cy="60" r="52" /><circle class="hold__fill" cx="60" cy="60" r="52" /></svg>
-        <span>Press + hold<br />to punch<br />your ticket</span>
-      </button>
-    </div>
+    <h2 class="op-headline"><em>Your ticket</em> awaits.</h2>
+    <p class="op-stamp-hint">Click the ticket to stamp it</p>
+    <div class="op-gate" style="display:none"></div>
     <h2 class="op-ride"><span><em>Now</em> ride it.</span></h2>
   </section>
 

@@ -1,36 +1,119 @@
-/* ---------- Act I: the fogged window (full screen until step 2 moves it into the frame) ---------- */
+/* Full-bleed layout: no frame around the site */
+#frame, .scallop { display: none; }
+
+/* ---------- Act I: the fogged window ---------- */
 #opening {
-  position: fixed; inset: 0; z-index: 80; overflow: hidden; visibility: hidden; opacity: 0;
-  touch-action: none; cursor: none; background: #000; user-select: none; -webkit-user-select: none;
+  position: fixed; inset: 0; z-index: 40; overflow: hidden; visibility: hidden; opacity: 0;
+  touch-action: none; cursor: none; background: var(--ink); user-select: none; -webkit-user-select: none;
 }
-#opening .op-scene, #opening .op-fog { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-#opening .op-scene { z-index: 0; }
-#opening .op-fog { z-index: 1; }
+/* Restore cursor once fog is gone and ticket is clickable */
+#opening.ticket-phase { cursor: auto; }
+#opening.ticket-phase .op-postcard { pointer-events: auto; z-index: 6; }
+#opening.ticket-phase .op-card { cursor: pointer; pointer-events: auto; }
+#opening .op-scene {
+  position: absolute;
+  left: -6%; top: -6%;
+  width: 112%; height: 112%;
+  display: block;
+  z-index: 0;
+  object-fit: cover;
+  pointer-events: none;
+  will-change: transform;
+}
+#opening .op-fog {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  z-index: 2;
+}
+
+/* Renaissance Sacred Geometry Grid (Shopify Editions Aesthetic) */
+.op-lines {
+  position: absolute; inset: 0; z-index: 1;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  visibility: hidden; opacity: 0;
+  /* Ultra-sharp hairline drafting — strictly no drop shadow or blur */
+}
+
+/* Subject parallax wrapper — disabled for now */
+.op-subject-wrap {
+  display: none !important;
+  position: absolute; z-index: 3;
+  bottom: 0; left: 0; right: 0;
+  display: flex; justify-content: center;
+  pointer-events: none; user-select: none;
+  will-change: transform;
+}
+/* Static subject image */
+.op-subject {
+  display: block;
+  height: min(84vh, 780px); width: auto;
+  filter: drop-shadow(-18px 28px 40px rgba(0,0,0,.6));
+}
+
+/* "Begin the Journey" gate button */
+.op-start-btn {
+  position: absolute; left: 50%; bottom: 12vh; z-index: 6;
+  transform: translateX(-50%);
+  padding: 1.1rem 3rem; border-radius: 999px;
+  background: var(--cream); color: var(--earth);
+  font-family: var(--serif); font-size: 1.1rem; font-style: italic;
+  letter-spacing: .08em; cursor: pointer;
+  box-shadow: 0 8px 40px rgba(0,0,0,.35);
+  transition: transform .3s, box-shadow .3s, background .3s;
+  visibility: hidden; opacity: 0;
+}
+.op-start-btn:hover {
+  transform: translateX(-50%) scale(1.06);
+  box-shadow: 0 0 48px rgba(242,182,50,.6), 0 8px 40px rgba(0,0,0,.4);
+  background: var(--marigold);
+}
+
+/* Stamp hint below the ticket */
+.op-stamp-hint {
+  position: absolute; left: 50%; bottom: 7vh; z-index: 6;
+  transform: translateX(-50%);
+  font-family: var(--serif); font-style: italic; font-size: .95rem;
+  color: var(--cream); letter-spacing: .06em;
+  text-shadow: 0 2px 12px rgba(0,0,0,.6);
+  visibility: hidden; opacity: 0; pointer-events: none;
+  animation: hint-pulse 2s ease-in-out infinite;
+}
+@keyframes hint-pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.45; }
+}
+
+/* Halftone / canvas grain overlay — makes photos feel like old ink posters */
+#opening::after {
+  content: ''; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Ccircle cx='1' cy='1' r='0.7' fill='rgba(20,10,0,0.18)'/%3E%3C/svg%3E");
+  background-size: 4px 4px;
+  mix-blend-mode: multiply;
+}
 .op-scrim {
-  position: absolute; inset: 0; z-index: 1; visibility: hidden; opacity: 0; pointer-events: none;
-  background: radial-gradient(ellipse at 50% 55%, rgba(0, 0, 0, .3), rgba(0, 0, 0, .82));
+  position: absolute; inset: 0; z-index: 5; visibility: hidden; opacity: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 55%, rgba(20, 12, 6, .25), rgba(20, 12, 6, .78));
 }
 .op-cursor {
   position: fixed; left: 0; top: 0; z-index: 6; width: 64px; height: 64px; margin: -32px 0 0 -32px;
-  border: 1px solid rgba(20, 16, 12, .7); border-radius: 50%; pointer-events: none; visibility: hidden; opacity: 0;
+  border: 1.5px solid rgba(42, 26, 16, .75); border-radius: 50%; pointer-events: none; visibility: hidden; opacity: 0;
   transition: width .3s, height .3s, margin .3s, background .3s;
 }
 #opening.is-wiping .op-cursor { width: 96px; height: 96px; margin: -48px 0 0 -48px; background: rgba(255, 255, 255, .12); }
 .op-prompt {
   position: absolute; left: 0; right: 0; top: 50%; z-index: 2; transform: translateY(-50%);
-  text-align: center; color: #14100C; pointer-events: none;
+  text-align: center; color: var(--ink); pointer-events: none;
 }
-.op-prompt .micro { color: rgba(20, 16, 12, .7); }
 .op-title { margin: 1rem 0; font-family: var(--serif); font-weight: 400; font-size: clamp(3rem, 9vw, 8rem); line-height: .95; }
 .op-title em, .op-headline em, .op-ride em { font-style: italic; }
 .op-meter {
-  position: absolute; left: 50%; bottom: calc(var(--edge) + 10vh); z-index: 2; width: 180px; height: 1px;
-  margin-left: -90px; background: rgba(20, 16, 12, .2); visibility: hidden; opacity: 0;
+  position: absolute; left: 50%; bottom: calc(var(--edge) + 10vh); z-index: 2; width: 180px; height: 2px;
+  margin-left: -90px; background: rgba(42, 26, 16, .2); visibility: hidden; opacity: 0;
 }
-.op-meter i { display: block; height: 100%; background: #14100C; transform: scaleX(0); transform-origin: left; }
+.op-meter i { display: block; height: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left; }
 .op-skip {
+  display: none !important;
   position: absolute; left: 0; right: 0; margin: 0 auto; width: max-content; bottom: calc(var(--edge) + 5vh); z-index: 2;
-  cursor: pointer; font-size: .64rem; letter-spacing: .28em; text-transform: uppercase; color: #14100C;
+  cursor: pointer; font-size: .68rem; font-weight: 700; letter-spacing: .25em; text-transform: uppercase; color: var(--ink);
   visibility: hidden; opacity: 0;
 }
 .op-skip:hover, .op-skip:focus-visible { text-decoration: underline; }
@@ -58,40 +141,110 @@
 /* ---------- Press + hold ---------- */
 .hold {
   position: relative; width: 132px; height: 132px; border-radius: 50%; display: grid; place-items: center;
-  color: var(--cream); background: rgba(0, 0, 0, .55); cursor: pointer; touch-action: none;
+  color: var(--cream); background: rgba(42, 26, 16, .6); cursor: pointer; touch-action: none;
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: transform .3s;
 }
+.hold::after {
+  content: ''; position: absolute; inset: -14px; border-radius: 50%; border: 1px solid rgba(242, 182, 50, .5);
+  animation: pulse-ring 1.8s ease-out infinite; pointer-events: none;
+}
+@keyframes pulse-ring { from { transform: scale(.85); opacity: 1; } to { transform: scale(1.25); opacity: 0; } }
 .hold.is-holding { transform: scale(.94); }
-.hold span { position: relative; font-size: .56rem; letter-spacing: .22em; text-transform: uppercase; line-height: 1.7; text-align: center; }
+.hold span { position: relative; font-size: .58rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; line-height: 1.6; text-align: center; }
 .ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); pointer-events: none; }
-.hold__track { fill: none; stroke: rgba(243, 235, 221, .22); stroke-width: 3; }
-.hold__fill { fill: none; stroke: var(--gold); stroke-width: 4; stroke-linecap: round; }
+.hold__track { fill: none; stroke: rgba(243, 230, 204, .25); stroke-width: 3; }
+.hold__fill { fill: none; stroke: var(--marigold); stroke-width: 4; stroke-linecap: round; }
 
-/* ---------- Stamps: they land in the bottom margin, never on the picture ---------- */
+/* ---------- Stamps ---------- */
 .stamp { display: block; color: var(--stamp, var(--terracotta)); filter: url(#inky); }
 #stampLayer { position: fixed; inset: 0; z-index: 90; pointer-events: none; }
-.stamp-fly { position: fixed; left: 50%; top: calc(100vh - var(--bar) / 2); width: min(96px, calc(var(--bar) - 12px)); text-align: center; }
-.stamp-fly .stamp { width: 100%; height: auto; aspect-ratio: 1; border-radius: 50%; background: rgba(243, 235, 221, .94); }
-.stamp-fly__label { display: none; }
+.stamp-fly { position: fixed; left: 50%; top: 45%; width: 180px; text-align: center; }
+.stamp-fly .stamp { width: 180px; height: 180px; border-radius: 50%; background: rgba(243, 230, 204, .94); box-shadow: 0 16px 40px rgba(0, 0, 0, .35); }
+.stamp-fly__label { margin-top: .7rem; font-family: var(--serif); font-size: 1.3rem; color: var(--cream); text-shadow: 0 2px 16px rgba(0, 0, 0, .7); }
+.stamp-fly__label span { display: block; margin-top: .3rem; font-family: var(--sans); font-size: .6rem; letter-spacing: .3em; text-transform: uppercase; opacity: .85; }
+.stamps {
+  display: flex; align-items: center; gap: .45rem; height: 44px; padding: 0 1rem 0 .45rem; border-radius: 999px;
+  background: rgba(243, 230, 204, .92); color: var(--earth); font-weight: 700; font-size: .72rem; letter-spacing: .12em;
+  transition: transform .3s, box-shadow .3s;
+}
+.stamps svg { width: 32px; height: 32px; }
+.stamps.is-bump, .stamps:hover { transform: scale(1.08); box-shadow: 0 0 28px rgba(242, 182, 50, .7); }
+
+/* ---------- HUD: left-docked journey pill ---------- */
+.hud {
+  display: none;
+}
+.hud__stops { list-style: none; display: flex; flex-direction: column; gap: .6rem; }
+.hud__stops button {
+  position: relative; display: block; width: 10px; height: 10px; border-radius: 50%;
+  border: 1px solid rgba(243, 230, 204, .7); transition: transform .3s, background .3s, box-shadow .3s;
+}
+.hud__stops button:hover, .hud__stops button:focus-visible { transform: scale(1.5); }
+.hud__stops button.is-visited { background: rgba(243, 230, 204, .55); }
+.hud__stops button.is-stamped { background: var(--marigold); border-color: var(--marigold); }
+.hud__stops button.is-current { box-shadow: 0 0 0 3px rgba(242, 182, 50, .45); }
+.hud__stops button::after {
+  content: attr(data-name); position: absolute; left: 22px; top: 50%; transform: translateY(-50%) scale(.667);
+  transform-origin: left center; white-space: nowrap; font-size: .9rem; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--cream); text-shadow: 0 2px 10px rgba(0, 0, 0, .7); opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.hud__stops button:hover::after, .hud__stops button:focus-visible::after { opacity: 1; }
+.hud__bar { width: 2px; height: 56px; border-radius: 2px; overflow: hidden; background: rgba(243, 230, 204, .2); }
+.hud__bar i { display: block; width: 100%; height: 100%; background: var(--marigold); transform: scaleY(0); transform-origin: top; }
+.exhibit { left: calc(var(--edge) + 2vw + 48px); }
+
+/* ---------- Rituals ---------- */
+.ritual {
+  position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .8rem; padding: 0 6vw; text-align: center; visibility: hidden; opacity: 0; touch-action: none;
+  background: radial-gradient(ellipse at center, rgba(20, 12, 6, .3), rgba(20, 12, 6, .78));
+}
+.ritual__verb { font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(2.2rem, 5.5vw, 4.6rem); line-height: 1; text-shadow: 0 6px 40px rgba(0, 0, 0, .6); }
+.ritual__stage { display: flex; gap: 2rem; align-items: center; justify-content: center; min-height: 220px; margin: 1.2rem 0; }
+.ritual__icon { position: relative; width: 64px; height: 64px; }
+.hold--ritual { width: 190px; height: 190px; }
+.hold--ritual .ritual__icon { width: 76px; height: 76px; filter: drop-shadow(0 0 calc(var(--glow, 0) * 26px) rgba(255, 200, 90, .95)); }
+.ritual__pad {
+  position: relative; width: 220px; height: 220px; border-radius: 50%; display: grid; place-items: center;
+  color: var(--cream); background: rgba(243, 230, 204, .1); border: 1px dashed rgba(243, 230, 204, .4);
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.ritual__pad.is-active { cursor: grabbing; background: rgba(243, 230, 204, .16); }
+.ritual__pad .ritual__icon { width: 90px; height: 90px; }
+.ritual__tap {
+  width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center; color: var(--cream);
+  background: rgba(243, 230, 204, .1); border: 1px solid rgba(243, 230, 204, .4); transition: background .3s, color .3s;
+}
+.ritual__tap:hover { background: rgba(243, 230, 204, .2); }
+.ritual__tap.is-done { background: var(--marigold); border-color: var(--marigold); color: var(--earth); }
+.ritual__skip { margin-top: .4rem; font-size: .68rem; letter-spacing: .25em; text-transform: uppercase; opacity: .75; }
+.ritual__skip:hover, .ritual__skip:focus-visible { opacity: 1; }
+.end-panel .btn--ritual { background: var(--marigold); border-color: var(--marigold); color: var(--earth); }
 
 /* ---------- Passport ---------- */
 .passport {
   display: grid; grid-template-columns: repeat(6, 1fr); gap: .8rem; width: min(640px, 86vw); margin: 1.6rem auto .6rem;
-  padding: 1.4rem; background: #EFE6D4; color: var(--earth);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, .4);
-  background-image: linear-gradient(90deg, transparent calc(50% - 1px), rgba(107, 58, 36, .16) 50%, transparent calc(50% + 1px));
+  padding: 1.4rem; border-radius: 10px; background: #EFE3C8; color: var(--earth);
+  box-shadow: inset 0 0 0 1px rgba(107, 58, 36, .25), 0 20px 50px rgba(0, 0, 0, .35);
+  background-image: linear-gradient(90deg, transparent calc(50% - 1px), rgba(107, 58, 36, .18) 50%, transparent calc(50% + 1px));
 }
 .passport__slot {
-  aspect-ratio: 1; border-radius: 50%; border: 1px dashed rgba(107, 58, 36, .3); display: grid; place-items: center;
+  aspect-ratio: 1; border-radius: 50%; border: 1.5px dashed rgba(107, 58, 36, .3); display: grid; place-items: center;
   font-size: .5rem; letter-spacing: .12em; text-transform: uppercase; text-align: center; color: rgba(107, 58, 36, .45); padding: 4px;
 }
 .passport__slot .stamp { width: 100%; height: 100%; }
 .passport__slot:nth-child(odd) .stamp { transform: rotate(-9deg); }
 .passport__slot:nth-child(even) .stamp { transform: rotate(7deg); }
-.passport__caption { margin-top: .4rem; }
-.passport-overlay { display: grid; place-items: center; background: rgba(0, 0, 0, .97); text-align: center; overflow-y: auto; }
-.passport-overlay__title { margin: .6rem 0 0; font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(2.2rem, 5vw, 3.8rem); }
+.passport__caption { opacity: .85; }
+.passport-overlay { display: grid; place-items: center; background: rgba(42, 26, 16, .97); text-align: center; overflow-y: auto; }
+.passport-overlay__title { margin: .6rem 0 0; font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(2rem, 5vw, 3.6rem); }
 
 @media (max-width: 700px) {
+  .hud { display: none; }
+  .exhibit { left: 0; }
   .passport { grid-template-columns: repeat(4, 1fr); }
+  .stamps { padding-right: .7rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hold::after { animation: none; }
 }
