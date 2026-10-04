@@ -1,0 +1,236 @@
+/* Prologue "The Letter": desk -> letter -> passport -> train wipe.
+   Flat 2D graphic style. Elements marked (JS) are positioned by prologue.js from live layout. */
+
+#opening {
+  --pl-ink: #2A1A10; --pl-paper: #F4EAD5; --pl-red: #8B1A1A; --pl-navy: #1F3A5F;
+  background: #1B1D21; cursor: auto; touch-action: manipulation;
+}
+#opening::after { z-index: 11; opacity: .55; }
+/* While the train covers the screen the WebGL carriage takes over underneath */
+#opening.is-revealed { background: transparent; }
+#opening.is-revealed::after { display: none; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- The desk ---------- */
+.pl-desk { position: absolute; inset: 0; z-index: 0; }
+.pl-desk__art { display: block; width: 100%; height: 100%; filter: grayscale(1) brightness(.72) saturate(1); }
+.pl-clock-sec { transform-origin: 1320px 210px; animation: pl-tick 60s steps(60) infinite; }
+@keyframes pl-tick { to { transform: rotate(360deg); } }
+
+/* The window: India behind the fog (JS) */
+.pl-view, .pl-fog { position: absolute; left: 0; top: 0; }
+.pl-view { z-index: 1; background: #9FB7C4 url('/media/opening/arch.png') center / cover no-repeat; }
+.pl-fog { z-index: 2; display: block; cursor: crosshair; touch-action: none; }
+.pl-fog.is-done { pointer-events: none; }
+
+/* ---------- Hints ---------- */
+.pl-hint {
+  position: absolute; z-index: 3; left: 50%; translate: -50% 0; margin: 0; text-align: center; white-space: nowrap;
+  font-family: 'Cormorant Garamond', serif; font-size: clamp(1.15rem, 2vw, 1.6rem); color: var(--cream);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, .6); pointer-events: none; visibility: hidden; opacity: 0;
+}
+.pl-hint p { margin: 0; }
+.pl-hint em { font-style: italic; color: var(--marigold); }
+.pl-hint--letter { top: 88%; z-index: 6; }
+.pl-hint--stamp { bottom: calc(var(--edge) + 9vh); z-index: 8; }
+.pl-meter { width: 140px; height: 2px; margin: .6rem auto 0; background: rgba(243, 230, 204, .25); }
+.pl-meter i { display: block; height: 100%; background: var(--marigold); transform: scaleX(0); transform-origin: left; }
+.pl-assist {
+  pointer-events: auto; margin-top: .7rem; font-family: var(--sans); font-size: .62rem; font-weight: 700;
+  letter-spacing: .25em; text-transform: uppercase; color: var(--cream); opacity: .7;
+}
+.pl-assist:hover, .pl-assist:focus-visible { opacity: 1; text-decoration: underline; }
+
+.pl-scrim {
+  position: absolute; inset: 0; z-index: 4; pointer-events: none; visibility: hidden; opacity: 0;
+  background: radial-gradient(ellipse at 50% 55%, rgba(14, 10, 8, .35), rgba(14, 10, 8, .85));
+}
+/* Warm watercolour wash that bleeds in from the edges after the stamp */
+.pl-wash {
+  position: absolute; inset: 0; z-index: 5; pointer-events: none; visibility: hidden; opacity: 0; mix-blend-mode: soft-light;
+  background: radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(224, 142, 43, .6) 72%, rgba(181, 82, 59, .8) 100%);
+}
+
+/* ---------- The envelope ---------- */
+.pl-envelope-wrap {
+  position: absolute; left: 50%; top: 74%; z-index: 6; translate: -50% -50%;
+  perspective: 900px; visibility: hidden; opacity: 0;
+}
+.pl-envelope {
+  position: relative; display: block; width: clamp(220px, 26vw, 340px); aspect-ratio: 1.6;
+  border-radius: 6px; transform-style: preserve-3d; cursor: pointer;
+}
+.pl-envelope:focus-visible { outline: 2px solid var(--marigold); outline-offset: 8px; }
+.pl-envelope__body {
+  position: absolute; inset: 0; border-radius: 6px;
+  background: linear-gradient(160deg, #F7EEDB, #EADBBE);
+  box-shadow: 0 24px 40px rgba(0, 0, 0, .5);
+}
+.pl-envelope__body::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background:
+    linear-gradient(to top right, transparent 49.6%, rgba(107, 58, 36, .16) 50%, transparent 50.4%),
+    linear-gradient(to top left, transparent 49.6%, rgba(107, 58, 36, .16) 50%, transparent 50.4%);
+}
+.pl-envelope.is-glowing .pl-envelope__body { animation: pl-glow 2.2s ease-in-out infinite; }
+@keyframes pl-glow {
+  0%, 100% { box-shadow: 0 24px 40px rgba(0, 0, 0, .5), 0 0 0 rgba(242, 182, 50, 0); }
+  50% { box-shadow: 0 24px 40px rgba(0, 0, 0, .5), 0 0 70px rgba(242, 182, 50, .6); }
+}
+.pl-envelope__flap {
+  position: absolute; left: 0; right: 0; top: 0; height: 62%; z-index: 1; transform-origin: 50% 0;
+  background: linear-gradient(180deg, #EFE2C6, #E0CDA9); clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.pl-envelope__to {
+  position: absolute; left: 8%; bottom: 10%; font-family: 'Caveat', cursive;
+  font-size: clamp(1.1rem, 1.8vw, 1.5rem); color: #3A2A1A;
+}
+.pl-seal { position: absolute; left: 50%; top: 62%; z-index: 2; width: 22%; aspect-ratio: 1; translate: -50% -50%; }
+.pl-seal__half { position: absolute; inset: 0; }
+.pl-seal__half svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .35)); }
+.pl-seal__half--l { clip-path: polygon(0 0, 54% 0, 46% 28%, 56% 52%, 45% 76%, 52% 100%, 0 100%); }
+.pl-seal__half--r { clip-path: polygon(54% 0, 100% 0, 100% 100%, 52% 100%, 45% 76%, 56% 52%, 46% 28%); }
+
+/* ---------- The letter ---------- */
+.pl-center {
+  position: absolute; inset: 0; z-index: 7; display: grid; place-items: center;
+  padding: calc(var(--edge) + 4vh) 4vw; pointer-events: none;
+}
+.pl-center > * { pointer-events: auto; }
+.pl-letter { position: relative; width: min(660px, 90vw); transform-origin: 50% 0; visibility: hidden; opacity: 0; }
+.pl-paper {
+  max-height: 70vh; overflow-y: auto; padding: clamp(1.4rem, 4.5vw, 3.2rem); border-radius: 3px; cursor: pointer;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, .5), transparent 40%),
+    radial-gradient(circle at 85% 90%, rgba(181, 130, 90, .18), transparent 45%),
+    var(--pl-paper);
+  color: var(--pl-ink); box-shadow: 0 30px 60px rgba(0, 0, 0, .5), inset 0 0 60px rgba(150, 110, 60, .18);
+  font-family: 'Caveat', cursive; font-size: clamp(1.3rem, 2.3vw, 1.7rem); line-height: 1.35;
+}
+.pl-ink { margin: 0 0 .7em; }
+.pl-ink--salute { font-size: 1.3em; font-weight: 600; }
+.pl-ink--key { font-size: 1.35em; font-weight: 600; color: #7A1512; }
+/* Lines that write themselves left to right: GSAP tweens --p from -0.15 to 1.15 */
+.pl-sweep {
+  --p: -0.15;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(var(--p) * 100%), transparent calc(var(--p) * 100% + 12%));
+  mask-image: linear-gradient(90deg, #000 calc(var(--p) * 100%), transparent calc(var(--p) * 100% + 12%));
+}
+.pl-w { display: inline-block; }
+.pl-sign { margin: 1em 0 0; text-align: right; }
+.pl-smudge { display: inline-block; filter: blur(2.6px); opacity: .7; transform: skewX(-8deg); }
+
+.pl-sketch {
+  position: absolute; width: clamp(64px, 9vw, 118px); pointer-events: none; opacity: .55;
+  fill: none; stroke: #7A2E2E; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+}
+.pl-sketch path { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.pl-sketch--tl { left: -13%; top: 2%; }
+.pl-sketch--tr { right: -13%; top: 26%; }
+.pl-sketch--bl { left: -12%; bottom: 24%; }
+.pl-sketch--br { right: -12%; bottom: 12%; }
+
+.pl-cta {
+  display: block; margin: 1.4rem auto 0; padding: 1rem 2.6rem; border-radius: 999px;
+  background: var(--cream); color: var(--earth); font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 1.15rem; letter-spacing: .06em; box-shadow: 0 8px 40px rgba(0, 0, 0, .35);
+  transition: background .3s, box-shadow .3s; visibility: hidden; opacity: 0;
+}
+.pl-cta:hover, .pl-cta:focus-visible { background: var(--marigold); box-shadow: 0 0 48px rgba(242, 182, 50, .55); }
+
+/* ---------- The passport ---------- */
+.pl-passport {
+  display: grid; grid-template-columns: 1fr 1fr; width: min(860px, 92vw, 118vh); aspect-ratio: 1.42; padding: 10px;
+  border-radius: 12px; background: var(--pl-navy); box-shadow: 0 30px 60px rgba(0, 0, 0, .45);
+  transition: box-shadow 1.2s ease; visibility: hidden; opacity: 0;
+}
+.pl-passport.is-cleared {
+  box-shadow: 0 0 0 2px rgba(242, 182, 50, .5), 0 0 90px rgba(242, 182, 50, .55), 0 30px 60px rgba(0, 0, 0, .45);
+}
+.pl-page { position: relative; overflow: hidden; padding: clamp(.8rem, 2.2vw, 1.6rem); background: #F1E8D6; color: #2E3A6B; }
+.pl-page--l { border-radius: 6px 0 0 6px; box-shadow: inset -14px 0 20px -14px rgba(0, 0, 0, .35); }
+.pl-page--r { border-radius: 0 6px 6px 0; box-shadow: inset 14px 0 20px -14px rgba(0, 0, 0, .35); }
+.pl-wm { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.pl-wm path { fill: none; stroke: #2E3A6B; stroke-width: 1; stroke-opacity: .32; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.pl-page__eyebrow {
+  position: relative; margin: 0; font-size: clamp(.5rem, .9vw, .62rem); font-weight: 700;
+  letter-spacing: .3em; text-transform: uppercase;
+}
+.pl-photo {
+  position: relative; display: grid; place-items: end center; overflow: hidden; width: 32%; aspect-ratio: 3 / 4;
+  margin: 1rem 0; border-radius: 4px; background: #DCD2BF;
+}
+.pl-photo svg { display: block; width: 90%; }
+.pl-fields { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: .7rem 1rem; margin: 0; }
+.pl-fields dt { font-size: clamp(.45rem, .8vw, .55rem); font-weight: 700; letter-spacing: .22em; text-transform: uppercase; opacity: .7; }
+.pl-fields dd {
+  margin: .1rem 0 0; font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: clamp(.9rem, 1.6vw, 1.2rem); color: var(--pl-ink);
+}
+.pl-target, .pl-impression { position: absolute; left: 50%; top: 56%; width: 62%; aspect-ratio: 260 / 170; translate: -50% -50%; }
+.pl-target {
+  display: grid; place-items: center; border: 2px dashed rgba(139, 26, 26, .35); border-radius: 8px;
+  font-size: .6rem; font-weight: 700; letter-spacing: .25em; text-transform: uppercase; color: rgba(139, 26, 26, .5);
+}
+.pl-impression { rotate: -5deg; color: var(--pl-red); filter: url(#inky); visibility: hidden; opacity: 0; }
+.pl-impression svg { display: block; width: 100%; height: 100%; }
+.pl-drop { position: absolute; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--pl-red); opacity: .75; pointer-events: none; }
+
+/* ---------- Brass stamp (JS) ---------- */
+.pl-stamper {
+  position: absolute; left: 0; top: 0; z-index: 8; width: clamp(96px, 13vw, 160px); aspect-ratio: 200 / 260;
+  filter: drop-shadow(0 18px 18px rgba(0, 0, 0, .45)); cursor: pointer; visibility: hidden; opacity: 0;
+}
+.pl-stamper svg { display: block; width: 100%; height: 100%; }
+.pl-stamper:focus-visible { outline: 2px solid var(--marigold); outline-offset: 6px; border-radius: 8px; }
+.pl-stamp-shadow {
+  position: absolute; left: 0; top: 0; z-index: 7; width: clamp(80px, 11vw, 140px); height: 24px;
+  translate: -50% -50%; border-radius: 50%; pointer-events: none; visibility: hidden; opacity: 0;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .45), transparent);
+}
+
+/* ---------- Departure board ---------- */
+.pl-board {
+  position: absolute; z-index: 9; left: 50%; top: calc(var(--edge) + 6vh); translate: -50% 0;
+  display: grid; grid-template-columns: repeat(4, auto); gap: .6rem 2rem; padding: .9rem 1.4rem;
+  background: #12100E; border: 1px solid #3A2F25; border-radius: 8px; box-shadow: 0 20px 40px rgba(0, 0, 0, .5);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--marigold);
+  white-space: nowrap; visibility: hidden; opacity: 0;
+}
+.pl-board__cell small {
+  display: block; margin-bottom: .3rem; font-size: .55rem; letter-spacing: .25em; text-transform: uppercase;
+  color: var(--cream); opacity: .55;
+}
+.pl-board__cell b {
+  display: block; min-width: 1ch; font-weight: 700; font-size: clamp(.8rem, 1.5vw, 1.1rem);
+  letter-spacing: .14em; text-shadow: 0 0 10px rgba(242, 182, 50, .55);
+}
+.pl-board .is-blink { animation: pl-blink 1s steps(2, start) infinite; }
+@keyframes pl-blink { to { visibility: hidden; } }
+
+/* ---------- The train (JS sizes it to cover the viewport) ---------- */
+.pl-train { position: absolute; left: 0; top: 0; z-index: 10; pointer-events: none; will-change: transform; }
+.pl-train svg { display: block; width: 100%; height: 100%; }
+
+/* ---------- Small screens ---------- */
+@media (max-width: 900px) {
+  .pl-sketch { width: 60px; opacity: .22; }
+  .pl-sketch--tl { left: 2%; top: 1%; }
+  .pl-sketch--tr { right: 2%; top: 22%; }
+  .pl-sketch--bl { left: 2%; bottom: 26%; }
+  .pl-sketch--br { right: 2%; bottom: 14%; }
+}
+@media (max-width: 600px) {
+  .pl-passport { grid-template-columns: 1fr; width: min(92vw, 60vh); aspect-ratio: .72; }
+  .pl-page--l { display: none; }
+  .pl-page--r { border-radius: 6px; box-shadow: none; }
+  .pl-board { grid-template-columns: repeat(2, auto); gap: .6rem 1.4rem; }
+  .pl-envelope-wrap { top: 72%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-clock-sec, .pl-envelope.is-glowing .pl-envelope__body, .pl-board .is-blink { animation: none; }
+}
