@@ -6,7 +6,7 @@
   <title>WANDERWORDS · Ten stops. Ten stories. One India.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;700&family=Caveat:wght@400;600&display=swap" rel="stylesheet" />
 </head>
 <body class="is-locked">
   <svg class="svg-defs" width="0" height="0" aria-hidden="true">
@@ -69,26 +69,81 @@
     </div>
   </div>
 
-  <!-- 2. Opening: wipe the fogged window, then punch your ticket -->
-  <section id="opening" aria-label="Boarding">
-    <canvas class="op-scene" aria-hidden="true"></canvas>
-    <canvas class="op-fog" aria-hidden="true"></canvas>
-    <div class="op-scrim" aria-hidden="true"></div>
-    <div class="op-cursor" aria-hidden="true"></div>
-    <div class="op-prompt">
-      <h1 class="op-title"><em>Wipe</em> the window</h1>
+  <!-- 2. Prologue "The Letter": a grey desk, a letter from the last passenger, a passport stamp, a train.
+       Illustrations are injected by src/prologue.js from src/prologue-art.js. -->
+  <section id="opening" aria-label="Prologue">
+    <!-- The desk and its fogged window -->
+    <div class="pl-desk" aria-hidden="true"></div>
+    <div class="pl-view" aria-hidden="true"></div>
+    <canvas class="pl-fog" aria-label="A fogged window. Drag across it to wipe it clear."></canvas>
+    <div class="pl-hint pl-hint--window">
+      <p><em>Wipe</em> the window</p>
+      <div class="pl-meter" aria-hidden="true"><i></i></div>
+      <button class="pl-assist" type="button">Clear it for me</button>
     </div>
-    <div class="op-meter" aria-hidden="true"><i></i></div>
-    <button class="op-skip">Clear the glass for me</button>
-    <!-- Start Journey gate: appears after fog is fully wiped -->
-    <button class="op-start-btn" aria-label="Start your journey">Begin the Journey →</button>
-    <div class="op-postcard" aria-hidden="true">
-      <div class="op-card"><div class="op-half op-half--l"></div><div class="op-half op-half--r"></div></div>
+    <div class="pl-scrim" aria-hidden="true"></div>
+    <div class="pl-wash" aria-hidden="true"></div>
+
+    <!-- The envelope -->
+    <div class="pl-envelope-wrap">
+      <button class="pl-envelope" type="button" aria-label="A letter addressed to you. Open it.">
+        <span class="pl-envelope__body"></span>
+        <span class="pl-envelope__flap"></span>
+        <span class="pl-envelope__to">For you</span>
+        <span class="pl-seal"><span class="pl-seal__half pl-seal__half--l"></span><span class="pl-seal__half pl-seal__half--r"></span></span>
+      </button>
     </div>
-    <h2 class="op-headline"><em>Your ticket</em> awaits.</h2>
-    <p class="op-stamp-hint">Click the ticket to stamp it</p>
-    <div class="op-gate" style="display:none"></div>
-    <h2 class="op-ride"><span><em>Now</em> ride it.</span></h2>
+    <p class="pl-hint pl-hint--letter"><em>Open</em> the letter</p>
+
+    <!-- The letter -->
+    <div class="pl-center">
+      <article class="pl-letter" aria-label="The letter">
+        <div class="pl-paper">
+          <p class="pl-ink pl-ink--salute pl-sweep">To whoever finds this next,</p>
+          <p class="pl-ink pl-words">Someone once left me a letter like this. I almost didn't go.</p>
+          <p class="pl-ink pl-words">There are ten stops on a line that runs the length of a country. At each one, someone will feed you, or show you something they made with their hands. Let them.</p>
+          <p class="pl-ink pl-words">Bring your passport.</p>
+          <p class="pl-ink pl-ink--key pl-sweep">The train leaves when you arrive.</p>
+          <p class="pl-ink pl-sign"><span aria-hidden="true">—</span> <span class="pl-smudge" aria-hidden="true">the last passenger</span><span class="sr-only">The signature is smudged by rain.</span></p>
+        </div>
+        <div class="pl-sketches" aria-hidden="true"></div>
+        <button class="pl-cta" type="button">Open your passport →</button>
+      </article>
+    </div>
+
+    <!-- The passport -->
+    <div class="pl-center">
+      <div class="pl-passport" role="group" aria-label="Your passport">
+        <div class="pl-page pl-page--l">
+          <svg class="pl-wm" viewBox="0 0 600 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+          <p class="pl-page__eyebrow">Passport · Travel record</p>
+          <div class="pl-photo" aria-hidden="true"></div>
+          <dl class="pl-fields">
+            <div><dt>Holder</dt><dd>You</dd></div>
+            <div><dt>Destination</dt><dd>India</dd></div>
+            <div><dt>Route</dt><dd>Ten stops, by rail</dd></div>
+            <div><dt>Issued</dt><dd class="pl-issued">Today</dd></div>
+          </dl>
+        </div>
+        <div class="pl-page pl-page--r">
+          <svg class="pl-wm" viewBox="0 0 600 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+          <p class="pl-page__eyebrow">Visas · Entries</p>
+          <div class="pl-target"><span>Stamp here</span></div>
+          <div class="pl-impression" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+    <div class="pl-stamp-shadow" aria-hidden="true"></div>
+    <button class="pl-stamper" type="button" aria-label="Press the stamp onto your passport"></button>
+    <p class="pl-hint pl-hint--stamp"><em>Press</em> the stamp</p>
+
+    <!-- Departure board -->
+    <div class="pl-board" role="status" aria-label="Platform 1. WanderWords Express. 10 stops. Departing now.">
+      <div class="pl-board__cell" aria-hidden="true"><small>Platform</small><b data-flap="1"></b></div>
+      <div class="pl-board__cell" aria-hidden="true"><small>Train</small><b data-flap="WANDERWORDS EXPRESS"></b></div>
+      <div class="pl-board__cell" aria-hidden="true"><small>Stops</small><b data-flap="10"></b></div>
+      <div class="pl-board__cell" aria-hidden="true"><small>Status</small><b data-flap="DEPARTING NOW" class="pl-board__status"></b></div>
+    </div>
   </section>
 
   <!-- Overlays (opened by you, never on their own) -->
