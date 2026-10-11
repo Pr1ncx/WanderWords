@@ -131,7 +131,7 @@ export function indexPage(all) {
 
 export function notFoundPage() {
   return {
-    html: `${header()}<main id="main" tabindex="-1"><h1 class="display" tabindex="-1">Not found</h1><p class="lede"><a href="/" data-link>Back to the index</a></p></main>`,
+    html: `${header()}<main id="main" tabindex="-1"><h1 class="display" tabindex="-1">Not found</h1><p class="lede"><a href="/read" data-link>Back to the index</a></p></main>`,
     accent: null,
     title: 'Not found · WanderWords',
     description: 'This page does not exist.',
