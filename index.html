@@ -3,16 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0C0A09" />
-  <title>WanderWords · Every place has one hour</title>
-  <meta name="description" content="WanderWords is a travel magazine of ten hours: Srinagar, Manali, Amritsar, Jaipur, Agra, Goa, Munnar, Gangtok, Rann of Kutch and Shillong." />
+  <title>WANDERWORDS · Ten stops. Ten stories. One India.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Jost:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Sometype+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
-<body>
-  <div id="app"></div>
-  <noscript><p style="padding:2rem;font-family:sans-serif;color:#F2EBDD">WanderWords needs JavaScript to display its pages.</p></noscript>
+<body class="is-locked">
+  <canvas id="webgl"></canvas>
+
+  <!-- Fixed controls (Miu Miu editorial system) -->
+  <div id="badge" class="miu-badge ctrl" aria-label="Current Destination">
+    <span class="miu-badge__arrow">↗</span>
+    <span id="badgeNum" class="miu-badge__text">1/10</span>
+  </div>
+
+  <button id="menuBtn" class="miu-icon-btn ctrl" aria-label="Open menu / notes">
+    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+      <path d="M6 6h10"></path>
+      <path d="M6 10h10"></path>
+      <path d="M6 14h6"></path>
+    </svg>
+  </button>
+
+  <button id="soundBtn" class="miu-sound-btn ctrl is-muted" aria-label="Toggle music">
+    <svg class="sound-on-icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+    </svg>
+    <svg class="sound-off-icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <line x1="23" y1="9" x2="17" y2="15"></line>
+      <line x1="17" y1="9" x2="23" y2="15"></line>
+    </svg>
+  </button>
+
+  <div class="ctrl-br ctrl">
+    <button id="ccBtn" class="miu-chip" aria-label="Toggle captions">CC</button>
+    <button id="replayBtn" class="miu-chip" aria-label="Replay chapter">↺</button>
+  </div>
+  <p id="cc" class="cc"></p>
+
+  <!-- 1. Loader -->
+  <div id="loader">
+    <div class="mosaic mosaic--top"></div>
+    <div class="loader__center">
+      <p class="loader__word">loading</p>
+      <p class="loader__pct">0%</p>
+    </div>
+    <div class="loader__prompt">
+      <p class="micro">Activate sound for a better experience</p>
+      <div class="loader__actions">
+        <button class="btn" data-sound="on"><span>Sound on</span></button>
+        <button class="btn btn--ghost" data-sound="off"><span>Continue muted</span></button>
+      </div>
+    </div>
+    <div class="mosaic mosaic--bottom"></div>
+  </div>
+
+  <!-- 2. Cover gate -->
+  <section id="intro">
+    <div class="mosaic mosaic--top"></div>
+    <div class="intro__card">
+      <p class="eyebrow">WanderWords · Issue 01</p>
+      <h1 class="intro__title"><em>The</em> INDIAN JOURNEY <em>begins</em></h1>
+      <p class="micro">Ten stops. Ten stories. One India.</p>
+      <button class="btn btn--magnetic" id="start"><span>Start now</span></button>
+    </div>
+    <div class="mosaic mosaic--bottom"></div>
+  </section>
+
+  <!-- 3. Train video & overlay (intro + rides) -->
+  <div id="trainContainer" class="train-container">
+    <video id="trainVideo" class="train-video" src="/media/train-window.mp4" playsinline loop muted preload="auto"></video>
+    <div id="trainOverlay">
+      <p id="trainCaption" class="caption"></p>
+      <button id="skipBtn" class="skip-intro">SKIP INTRO &gt;</button>
+    </div>
+  </div>
+
+  <!-- 4. Chapter title card -->
+  <section id="titleCard" class="title-card">
+    <p class="eyebrow" id="tcNum">CHAPTER 01</p>
+    <h1 id="tcTitle" class="tc-title"></h1>
+    <p class="micro" id="tcCity"></p>
+    <button id="exploreBtn" class="explore-btn">EXPLORE &gt;</button>
+  </section>
+
+  <!-- 5. Room exploration UI -->
+  <div id="exploreUI">
+    <article id="exhibit" class="exhibit">
+      <p class="ex-num"></p>
+      <h3></h3>
+      <p class="ex-text"></p>
+      <button id="viewBtn" class="link-btn"><span>View &gt;</span></button>
+    </article>
+    <div id="dots" class="dots"></div>
+    <p id="hint" class="hint">Scroll to explore the room ↓</p>
+    <div id="endPanel" class="end-panel">
+      <p class="eyebrow">End of chapter</p>
+      <button id="readBtn" class="btn btn--magnetic"><span>Read the story</span></button>
+      <button id="nextBtn" class="btn btn--magnetic btn--solid"><span>Next stop →</span></button>
+    </div>
+  </div>
+
+  <!-- Overlays -->
+  <section id="article" class="overlay article" data-lenis-prevent>
+    <button id="articleClose" class="close-btn">Back to the room ✕</button>
+    <div class="article__inner"></div>
+  </section>
+
+  <section id="lightbox" class="overlay lightbox">
+    <button id="lbClose" class="close-btn">Close ✕</button>
+    <button id="lbPrev" class="lb-arrow lb-arrow--prev" aria-label="Previous">‹</button>
+    <div class="lb-body"></div>
+    <button id="lbNext" class="lb-arrow lb-arrow--next" aria-label="Next">›</button>
+  </section>
+
+  <nav id="menu" class="overlay menu" data-lenis-prevent>
+    <button id="menuClose" class="close-btn">Close ✕</button>
+    <div class="menu__body"></div>
+  </nav>
+
+  <div id="tunnel"><p id="tunnelText"></p></div>
+
+  <!-- Finale -->
+  <section id="gift">
+    <div class="mosaic mosaic--top"></div>
+    <div class="intro__card">
+      <p class="eyebrow">Journey complete</p>
+      <h2 class="intro__title"><em>Your</em> POSTCARD <em>awaits</em></h2>
+      <p class="micro">Ten stops. One India.</p>
+      <button class="btn btn--magnetic" id="download"><span>Download postcard</span></button>
+      <button class="btn btn--ghost" id="restart"><span>Travel again</span></button>
+    </div>
+    <div class="mosaic mosaic--bottom"></div>
+  </section>
+
+  <div id="scroll-space"></div>
+
+  <!-- Print finish: paper fibre and film grain over everything -->
+  <div class="paper" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

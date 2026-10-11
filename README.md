@@ -1,68 +1,55 @@
 # WANDERWORDS
 
-*Every place has one hour.*
+*Ten stops. Ten stories. One India.*
 
-A college-project travel magazine about Incredible India: ten destinations, ten hours. The immersive WebGL experience ("One Hour") is the front door. The Reader / Print Edition is the always-available second door.
+An interactive, luxury digital travel magazine told as an editorial journey through Srinagar, Manali, Amritsar, Jaipur, Agra, Goa, Munnar, Gangtok, Rann of Kutch and Shillong.
 
-## The experience
+## The Experience
 
-Gateway and preloader, then a dark hall of ten plates. Step into a photograph, read four Dispatches hidden in it, then turn a 24-hour dial to find the hour at which that place is truest. Solve all ten and the clock-face Index closes with a line.
+1. **Loader**: Clean preloader with interactive sound prompt.
+2. **Cover Gate**: Minimalist editorial gateway with "The INDIAN JOURNEY begins".
+3. **Cinematic Train Journey**: AI-generated photorealistic train window video bridge (`public/media/train-window.mp4`) carrying travelers across landscapes with captions and a minimal `SKIP >` button.
+4. **Destination Rooms**: High-end architectural 3D exhibition pavilions for each city built with Three.js, featuring ambient lighting, brass picture lights, and authentic cultural signatures.
+5. **Interactive Exhibits**: Scroll to navigate through 5 exhibits per destination (hero video arch + 4 framed gallery photographs). Click any exhibit to open a high-res lightbox.
+6. **Editorial Story**: Full long-form magazine article with curated photos, video exhibits, and travel notes.
+7. **Design Language**: Minimalist editorial UI inspired by Miu Miu aesthetics (Work Sans & Sometype Mono typography, electric cobalt station badges, angled tape card buttons, and full-bleed viewport).
+8. **Finale**: Complete the tour and download a personalized stamped postcard.
 
-- **Gateway** (`/`): preloader counting 000 to 100, Enter unlocks audio.
-- **Plates**: arrows, keyboard left/right, or swipe. Neighbours sit back and dim.
-- **Crossing**: camera push on Z, frame dissolves, depth parallax comes alive.
-- **Dispatches**: four hotspots (The Past, The Table, The Calendar, Field Notes), counter 0/4, an audio layer and a slight warming for each.
-- **Dial**: drag or arrow keys, detents every 15 minutes, tolerance of 20 minutes. After about 45 seconds a quiet "Show me" appears. Skip is always there.
-- **Index**: the clock face with all ten hours, open any time from the top bar.
+The top-right notebook menu provides instant navigation to any chapter and displays project credits. Captions (CC) and chapter replay controls are pinned to the bottom corner.
 
-Progress (solved chapters) and the mute choice are remembered in `localStorage`.
-
-## Run
+## Run Locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Routes: `/` (immersive), `/read` (Reader index), `/destinations/:slug` (Reader page), `/credits`. If WebGL 2 is missing, fails, or the context is lost, the site opens Reader Mode. Build with `npm run build`. A static host needs a fallback to `index.html` for these routes.
+Build for production with:
 
-## Content
-
-All copy lives in `src/data/destinations.json`. Any field left empty shows as a visible `[[PLACEHOLDER]]`. Text marked `contentStatus: carried-over-unverified` came from an earlier build and must be fact-checked. The `hourClue` sentences are drafts that need checking too: each is shown in the Field Notes and implies the chapter's hour.
-
-### Adding a real photograph
-
-Set these fields for a destination (put files in `public/assets/<slug>/`):
-
-```json
-"photo": { "src": "/assets/srinagar/photo.webp", "depth": "/assets/srinagar/depth.webp", "alt": "...", "credit": "Photographer / source / licence" }
+```bash
+npm run build
 ```
 
-Portrait 4:5, about 1600 x 2000. `depth` is optional (grayscale, white = near). Without it, depth is estimated from height. Until `src` is set, a procedural placeholder illustration is painted in the browser. Hotspot positions are `[x, y]` from the top-left of the photograph, both 0 to 1.
+## Media Assets & Content
 
-### Grades and sound
+- **Train Video**: Stored at `public/media/train-window.mp4` for the cinematic window view.
+- **Destination Media**: High-res photographs and videos placed in `public/media/<city>/`.
+- **Chapter Copy**: All destination text, history, and exhibits live in `src/chapters.js`.
+- **Audio**: Ambient soundscapes and effects located in `public/audio/`.
 
-`grades` may override any preset per chapter (`night`, `dawn`, `day`, `dusk`, `true`) with `lift`, `gain`, `tint` (three numbers each), `gamma`, `sat`, `vig`. Without overrides the defaults in `src/experience/grade.js` are used and the "true" look is the grade at the chapter's own hour. Sound is synthesised in the browser. To use recordings instead, set `audio.bed`, `audio.layers[0..3]` and `audio.swell` to file paths.
-
-## Code map
+## Code Map
 
 | File | Purpose |
 |---|---|
-| `src/main.js` | History API router, per-page meta tags, focus handling, lazy-loads the experience |
-| `src/reader.js` | Semantic HTML for the Reader pages, plus helpers shared with the experience |
-| `src/credits.js` | Credits page |
-| `src/experience/gateway.js` | Gateway, preloader, Enter transition |
-| `src/experience/stage.js` | The hall, the camera and the phase state machine |
-| `src/experience/plates.js` | A plate: paper frame, depth-parallax photograph shader, corner mark |
-| `src/experience/art.js` | Placeholder art and depth maps, paper grain, textures |
-| `src/experience/grade.js` | Colour grade presets and hour interpolation |
-| `src/experience/hud.js` | Overlay: chapter text, arrows, tools |
-| `src/experience/dispatches.js` | Hotspots and the editorial panel |
-| `src/experience/dial.js` | The hour dial |
-| `src/experience/finale.js` | Clock-face Index |
-| `src/experience/preload.js` | Weighted preload tasks |
-| `src/engine.js` | Minimal three.js engine: DPR cap, pauses when the tab is hidden |
-| `src/audio.js` | Web Audio bus: unlock, persisted mute, synthesised soundscape |
-| `src/support.js`, `src/nav.js` | WebGL 2 and reduced-motion checks, navigation events |
-| `src/data/destinations.json` | Content model for all 10 destinations |
-| `src/styles/*.css` | Tokens, Reader layout, experience layout |
+| `src/main.js` | App orchestration: flow state machine, video transitions, chapter lifecycle, UI events |
+| `src/engine.js` | WebGL renderer, camera controller, and view management |
+| `src/room.js` | Architectural 3D room pavilion, lighting, photo frames, video arches, and interactive camera movement |
+| `src/chapters.js` | Curated editorial content, exhibits, and styling metadata for all 10 stops |
+| `src/ui.js` | Magazine reader article, lightbox, and navigation menu templates |
+| `src/media.js` | Dynamic image/video loaders with procedural fallbacks |
+| `src/textures.js` | Procedural PBR textures: plaster walls, floorboards, marble inlays, and textiles |
+| `src/post.js` | PostFX pipeline: color grading, bloom, subtle vignette, and exposure tuning |
+| `src/grain.css` | Film grain overlay and tactile micro-textures |
+| `src/style.css` | Miu Miu editorial design tokens, full-bleed layout, and component styling |
+
+Built with Vite, Three.js, GSAP and Lenis.
