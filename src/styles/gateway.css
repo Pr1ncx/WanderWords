@@ -32,7 +32,9 @@ body[data-mode='experience'] { overflow: hidden; overscroll-behavior: none; }
   font: 500 .75rem/1 var(--font-ui); letter-spacing: .24em; text-transform: uppercase;
   transition: background-color .35s, color .35s;
 }
-.cta:hover { background: var(--paper); color: var(--ink); }
+.cta { transform: rotate(-2deg); transition: background-color .35s, color .35s, transform .2s cubic-bezier(.25, 1, .5, 1); }
+.cta:hover { background: var(--paper); color: var(--ink); transform: rotate(0) scale(1.03); }
+@media (prefers-reduced-motion: reduce) { .cta, .cta:hover { transform: none; } }
 
 /* Top bar */
 .hud-top {
@@ -42,7 +44,11 @@ body[data-mode='experience'] { overflow: hidden; overscroll-behavior: none; }
 }
 .hud-chapter { margin: 0; font-size: .75rem; letter-spacing: .42em; text-transform: uppercase; text-align: center; }
 .hud-tools { justify-self: end; display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
-.hud-counter { margin: 0 .5rem 0 0; font-size: .6875rem; letter-spacing: .2em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.hud-counter {
+  margin: 0 .5rem 0 0; padding: .45rem .75rem; border-radius: 6px;
+  background: var(--accent); color: var(--ink); box-shadow: .5px .5px 1px rgb(0 0 0 / .25);
+  font-size: .6875rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; font-variant-numeric: tabular-nums;
+}
 .hud-back { position: absolute; z-index: 2; top: calc(clamp(.5rem, 2vw, 1.5rem) + 48px); left: clamp(.25rem, 2vw, 1rem); }
 
 /* Plates phase */
@@ -90,6 +96,8 @@ body[data-mode='experience'] { overflow: hidden; overscroll-behavior: none; }
   animation: hs-pulse 2.8s ease-out infinite;
 }
 .hs__tick { display: none; }
+.hs__ring { transition: transform .2s cubic-bezier(.25, 1, .5, 1), background-color .2s, color .2s; }
+.hs__btn:hover .hs__ring, .hs__btn:focus-visible .hs__ring { transform: scale(1.18); background: var(--accent); color: var(--ink); }
 .hs__btn.is-read .hs__ring { background: var(--accent); border-color: var(--accent); color: var(--ink); }
 .hs__btn.is-read .hs__ring::after { animation: none; opacity: 0; }
 .hs__btn.is-read .hs__n { display: none; }
