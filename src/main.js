@@ -1,22 +1,27 @@
+// Boot and wiring. The experience is two separate layers connected by one state machine:
+//
+//   TrainCanvas          src/train/TrainCanvas.js                    the journey (WebGL / train view)
+//   DestinationEditorial src/destination/DestinationEditorial.js     a destination (HTML page)
+//   journey              src/journey.js                              which layer is on screen, and the URL
+//
+// This file only builds them, connects them, and runs the loader, cover, menu and finale.
 import './style.css';
 import './grain.css';
-import Lenis from 'lenis';
+import './editorial.css';
 import gsap from 'gsap';
-import { Engine } from './engine.js';
-import { Room } from './room.js';
 import { CHAPTERS } from './chapters.js';
 import { CREDITS } from './credits.js';
-import { videoSource, placeholderURL } from './media.js';
-import { renderArticle, renderLightbox, renderMenu, pad } from './ui.js';
+import { placeholderURL } from './media.js';
+import { renderMenu } from './ui.js';
 import { splitChars, magnetic, drawPostcard } from './fx.js';
+import { TrainCanvas } from './train/TrainCanvas.js';
+import { DestinationEditorial } from './destination/DestinationEditorial.js';
+import { createJourney } from './journey.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 
-// phase: loader | gate | intro | ride | title | moving | explore | gift
-const S = { phase: 'loader', current: 0, target: 0, busy: false, arriving: false, soundOn: false, cc: false, ccText: '', exhibit: -2, overlay: null, lb: 0 };
-let engine, room, lenis, windowMedia, introTl, rideTl;
-let pre = null; // { i, room }: the next room, built ahead while the loader or the tunnel covers the screen
+const S = { soundOn: false, cc: false, ccText: '' };
 
 // ---------- Missing media: swap in a painted placeholder ----------
 document.addEventListener('error', (e) => {
@@ -25,13 +30,6 @@ document.addEventListener('error', (e) => {
   el.dataset.failed = '1';
   const url = placeholderURL(el.dataset.ph, el.getAttribute('src'), el.dataset.accent);
   if (el.tagName === 'IMG') el.src = url;
-  else if (el.tagName === 'VIDEO') {
-    const im = document.createElement('img');
-    im.className = el.className;
-    im.alt = el.dataset.ph;
-    im.src = url;
-    el.replaceWith(im);
-  }
 }, true);
 
 // ---------- Sound (optional files, missing files fail silently) ----------
@@ -58,7 +56,7 @@ function sfx() {
   whoosh.play().catch(() => {});
 }
 
-// ---------- Captions (CC) ----------
+// ---------- Captions (CC) for the train narration ----------
 function cc(text) {
   S.ccText = text || '';
   refreshCC();
@@ -69,21 +67,31 @@ function refreshCC() {
   el.classList.toggle('is-on', S.cc && !!S.ccText);
 }
 
-function lockScroll() {
-  lenis.stop();
-  document.body.classList.add('is-locked');
-}
-function unlockScroll() {
-  document.body.classList.remove('is-locked');
-  lenis.start();
-}
+// ---------- The two layers and the journey that connects them ----------
+const train = new TrainCanvas({
+  canvas: $('#webgl'),
+  container: $('#trainContainer'),
+  video: $('#trainVideo'),
+  overlay: $('#trainOverlay'),
+  captionEl: $('#trainCaption'),
+  skipBtn: $('#skipBtn'),
+  onCaption: cc,
+});
+const editorial = new DestinationEditorial({ root: $('#destination'), chapters: CHAPTERS, onNext: () => journey.nextStop() });
+const journey = createJourney({ chapters: CHAPTERS, train, editorial });
+document.body.dataset.phase = journey.phase;
 
-function splitTitle(el, text) {
-  el.setAttribute('aria-label', text);
-  el.innerHTML = text.split(' ').map((w) =>
-    `<span class="word" aria-hidden="true">${[...w].map((c) => `<span class="char">${c}</span>`).join('')}</span>`).join(' ');
-  return el.querySelectorAll('.char');
-}
+let lastPhase = '';
+journey.on('phase', (p) => {
+  if (p === 'finale') showGift();
+  else if (lastPhase === 'finale') hideGift();
+  lastPhase = p;
+});
+journey.on('stop', (i) => {
+  const badge = $('#badgeNum');
+  if (badge) badge.textContent = `${i + 1}/${CHAPTERS.length}`;
+  sfx();
+});
 
 // ---------- 1. Loader ----------
 async function init() {
@@ -102,21 +110,8 @@ async function init() {
     new Promise((r) => setTimeout(r, 1500)),
   ]);
 
-  engine = new Engine($('#webgl'));
-  engine.post.grade('#6B3A24', 0.3, 0);
-  prebuild(0); // chapter I's room is built now, behind the loader
-  gsap.ticker.add(() => engine.tick());
-  const vid = $('#trainVideo');
-  if (vid) {
-    gsap.set('#trainContainer', { autoAlpha: 1 });
-  }
-
-  lenis = new Lenis({ lerp: 0.08 });
-  lenis.stop();
-  gsap.ticker.add((t) => lenis.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
-  lenis.on('scroll', (l) => onScroll(l.progress));
-
+  train.prepare();
   setupUI();
   creep.kill();
   gsap.to(counter, {
@@ -133,58 +128,38 @@ function setupUI() {
   $('[data-sound="on"]').onclick = () => { setSound(true); openGate(); };
   $('[data-sound="off"]').onclick = () => { setSound(false); openGate(); };
   $('#start').onclick = startJourney;
-  $('#skipBtn').onclick = skip;
+  $('#skipBtn').onclick = () => journey.skip();
   $('#soundBtn').onclick = () => setSound(!S.soundOn);
   $('#ccBtn').onclick = () => { S.cc = !S.cc; $('#ccBtn').classList.toggle('is-active', S.cc); refreshCC(); };
-  $('#replayBtn').onclick = replay;
   $('#menuBtn').onclick = () => toggleMenu();
   $('#menuClose').onclick = () => toggleMenu(false);
-  $('#exploreBtn').onclick = explore;
-  $('#viewBtn').onclick = () => openLightbox(S.exhibit);
-  $('#readBtn').onclick = openArticle;
-  $('#nextBtn').onclick = () => (S.current < CHAPTERS.length - 1 ? rideTo(S.current + 1) : finish());
-  $('#articleClose').onclick = closeOverlay;
-  $('#lbClose').onclick = closeOverlay;
-  $('#lbPrev').onclick = () => openLightbox((S.lb + 4) % 5);
-  $('#lbNext').onclick = () => openLightbox((S.lb + 1) % 5);
   $('#download').onclick = () => {
     const a = document.createElement('a');
     a.download = 'wanderwords-postcard.png';
     a.href = drawPostcard(CHAPTERS).toDataURL('image/png');
     a.click();
   };
-  $('#restart').onclick = () => rideTo(0);
+  $('#restart').onclick = () => journey.restart();
 
-  // Menu: chapter index + credits
+  // Index: every stop is one click away
   $('#menu .menu__body').innerHTML = renderMenu(CHAPTERS, CREDITS);
-  $$('[data-go]').forEach((b) => (b.onclick = () => { toggleMenu(false); goToChapter(+b.dataset.go); }));
+  $$('[data-go]').forEach((b) => (b.onclick = () => { toggleMenu(false); journey.goToStop(+b.dataset.go); }));
 
-  // Exhibit progress dots
-  $('#dots').innerHTML = Array.from({ length: 5 }, () => '<i></i>').join('');
-
-  // Click photos and the hero video in 3D
-  const canvas = $('#webgl');
-  canvas.addEventListener('click', () => {
-    if (S.phase !== 'explore' || S.overlay || !room) return;
-    const k = room.pick(engine.ndc);
-    if (k >= 0) openLightbox(k);
-  });
-  canvas.addEventListener('pointermove', () => {
-    if (S.phase !== 'explore' || !room) { canvas.style.cursor = ''; return; }
-    canvas.style.cursor = room.pick(engine.ndc) >= 0 ? 'pointer' : '';
-  });
   addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    if (S.overlay) closeOverlay();
-    else toggleMenu(false);
+    if (e.key === 'Escape') toggleMenu(false);
   });
 }
 
 // ---------- 2. Cover gate ----------
 function openGate() {
-  S.phase = 'gate';
   gsap.to('#loader', { autoAlpha: 0, duration: 1 });
   gsap.to('.ctrl', { autoAlpha: 1, duration: 0.8, delay: 0.6, stagger: 0.08 });
+  journey.openGate();
+
+  // A link straight to a destination (/stop/goa) skips the cover and the train
+  const deep = journey.stopFromUrl();
+  if (deep >= 0) { journey.goToStop(deep); return; }
+
   gsap.set('#intro', { autoAlpha: 1 });
   gsap.timeline({ delay: 0.3 })
     .from('#intro .mosaic--top', { yPercent: -100, duration: 1, ease: 'expo.out' }, 0)
@@ -195,251 +170,11 @@ function openGate() {
 function startJourney() {
   $('#start').disabled = true;
   sfx();
-  gsap.to('#intro', { autoAlpha: 0, scale: 1.04, duration: 1, ease: 'power2.inOut' }); // no blur filter: it is very costly full-screen
-  runIntro();
+  gsap.to('#intro', { autoAlpha: 0, scale: 1.04, duration: 1, ease: 'power2.inOut' }); // no blur filter: very costly full-screen
+  journey.begin();
 }
 
-// ---------- 3. Train intro (automatic) ----------
-function caption(text) {
-  const el = $('#trainCaption');
-  gsap.to(el, {
-    autoAlpha: 0, y: -8, duration: 0.4, overwrite: true,
-    onComplete: () => {
-      el.textContent = text;
-      if (text) gsap.fromTo(el, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 1, ease: 'expo.out' });
-    },
-  });
-  cc(text);
-}
-
-function runIntro() {
-  S.phase = 'intro';
-  $('#skipBtn').textContent = 'SKIP INTRO >';
-  const vid = $('#trainVideo');
-  if (vid) {
-    vid.currentTime = 0;
-    vid.play().catch(() => {});
-  }
-  gsap.to('#trainContainer', { autoAlpha: 1, duration: 1 });
-  gsap.to('#trainOverlay', { autoAlpha: 1, duration: 1, delay: 0.6 });
-  introTl = gsap.timeline()
-    .add(() => caption('A journey, ten stops.'), 1.6)
-    .add(() => caption(''), 5.2)
-    .add(() => rideTo(0, true), 6);
-}
-
-// ---------- Train ride to a stop: AI generated cinematic video ----------
-function rideTo(i, fromIntro = false) {
-  if (S.busy && !fromIntro) return;
-  S.busy = true;
-  S.phase = 'ride';
-  S.target = i;
-  const ch = CHAPTERS[i];
-  closeOverlay(true);
-  lockScroll();
-  sfx();
-  engine.post.pulse();
-  engine.post.grade(ch.accent, 0.28);
-
-  const vid = $('#trainVideo');
-  if (vid) {
-    vid.play().catch(() => {});
-  }
-
-  rideTl = gsap.timeline();
-  if (!fromIntro) {
-    $('#tunnelText').textContent = 'All aboard';
-    rideTl.to('#tunnel', { autoAlpha: 1, duration: 0.6, ease: 'power2.in' })
-      .add(() => {
-        hideChapterUI();
-        gsap.set('#gift', { autoAlpha: 0 });
-        disposeRoom();
-        prebuild(i); // built while the tunnel is opaque, so the train video never stutters
-        gsap.to('#trainContainer', { autoAlpha: 1, duration: 0.4 });
-      })
-      .to('#tunnel', { autoAlpha: 0, duration: 0.8, ease: 'power2.out' }, '+=0.3');
-  } else {
-    gsap.to('#trainContainer', { autoAlpha: 1, duration: 0.8 });
-  }
-  rideTl
-    .add(() => {
-      $('#skipBtn').textContent = fromIntro ? 'SKIP INTRO >' : 'SKIP >';
-      gsap.to('#trainOverlay', { autoAlpha: 1, duration: 0.6 });
-      caption(`Next stop: ${ch.name}`);
-    })
-    .add(() => arrive(i), '+=4.5');
-}
-
-function skip() {
-  const vid = $('#trainVideo');
-  if (vid) vid.pause();
-  if (S.phase === 'intro') arrive(0);
-  else if (S.phase === 'ride') arrive(S.target);
-}
-
-// Tunnel into the chapter's room
-function arrive(i) {
-  if (S.arriving) return;
-  S.arriving = true;
-  S.busy = true;
-  if (introTl) introTl.kill();
-  if (rideTl) rideTl.kill();
-  const ch = CHAPTERS[i];
-  $('#tunnelText').textContent = `Chapter ${pad(i + 1)} · ${ch.title}`;
-  gsap.timeline()
-    .to('#trainOverlay', { autoAlpha: 0, duration: 0.4 }, 0)
-    .to('#trainContainer', { autoAlpha: 0, duration: 0.6 }, 0.2)
-    .to('#tunnel', { autoAlpha: 1, duration: 0.6, ease: 'power2.in' }, 0)
-    .add(() => {
-      caption('');
-      engine.post.pulse(0.022);
-      const vid = $('#trainVideo');
-      if (vid) vid.pause();
-      if (windowMedia) { windowMedia.dispose(); windowMedia = null; }
-      openRoom(i);
-    })
-    .to('#tunnel', { autoAlpha: 0, duration: 1, ease: 'power2.out' }, '+=0.5')
-    .add(() => { S.arriving = false; S.busy = false; });
-}
-
-function openRoom(i) {
-  disposeRoom();
-  S.current = i;
-  room = takeRoom(i);
-  engine.setView(room);
-  engine.post.grade(CHAPTERS[i].room.trim, 0.4);
-  room.play();
-  showTitle(i);
-}
-
-function disposeRoom() {
-  if (room) { room.dispose(); room = null; }
-  if (engine) engine.setView(null); // never keep rendering a disposed scene behind the video
-}
-
-// Build a room (textures, geometry, shader compile) ahead of time, while something covers the screen
-function prebuild(i) {
-  if (pre && pre.i === i) return;
-  if (pre) pre.room.dispose();
-  const r = new Room(CHAPTERS[i], engine.env);
-  engine.renderer.compile(r.scene, r.camera);
-  pre = { i, room: r };
-}
-
-function takeRoom(i) {
-  if (!pre || pre.i !== i) prebuild(i);
-  const r = pre.room;
-  pre = null;
-  return r;
-}
-
-// ---------- 4. Chapter title card ----------
-function showTitle(i) {
-  S.phase = 'title';
-  lockScroll();
-  hideChapterUI();
-  const ch = CHAPTERS[i];
-  const next = CHAPTERS[i + 1];
-  $('#tcNum').textContent = `CHAPTER ${pad(i + 1)}`;
-  const bn = $('#badgeNum'); if (bn) bn.textContent = `${i + 1}/${CHAPTERS.length}`;
-  $('#tcCity').textContent = `${ch.name} · ${ch.tagline}`;
-  $('#nextBtn span').textContent = next ? `Next stop: ${next.name} →` : 'Finish the journey →';
-  const chars = splitTitle($('#tcTitle'), ch.title.toUpperCase());
-  gsap.set('#titleCard', { autoAlpha: 1, y: 0 });
-  gsap.timeline({ delay: 0.3 })
-    .fromTo('#tcNum', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.8 })
-    .fromTo(chars, { autoAlpha: 0, yPercent: 60, rotate: 6 },
-      { autoAlpha: 1, yPercent: 0, rotate: 0, duration: 1, stagger: 0.03, ease: 'expo.out' }, 0.2)
-    .fromTo(['#tcCity', '#exploreBtn'], { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.12 }, '-=0.5');
-  cc(`${ch.name}. ${ch.tagline}.`);
-}
-
-function hideChapterUI() {
-  gsap.set(['#titleCard', '#exploreUI', '#exhibit'], { autoAlpha: 0 });
-  $('#endPanel').classList.remove('is-visible');
-  S.exhibit = -2;
-}
-
-// ---------- 5. Explore the room ----------
-function explore() {
-  if (S.phase !== 'title' || !room) return;
-  S.phase = 'moving';
-  sfx();
-  gsap.to('#titleCard', { autoAlpha: 0, y: -20, duration: 0.6, ease: 'power2.in' });
-  room.enterExplore().then(() => {
-    S.phase = 'explore';
-    S.exhibit = -2;
-    lenis.scrollTo(0, { immediate: true, force: true });
-    unlockScroll();
-    gsap.to('#exploreUI', { autoAlpha: 1, duration: 0.6 });
-    onScroll(0);
-  });
-}
-
-function onScroll(p) {
-  if (S.phase !== 'explore' || !room) return;
-  room.progress = p;
-  const f = p * 4, k = Math.round(f);
-  showExhibit(Math.abs(f - k) < 0.38 ? k : -1);
-  $$('#dots i').forEach((d, j) => d.classList.toggle('is-on', j <= k));
-  $('#endPanel').classList.toggle('is-visible', p > 0.97);
-  $('#hint').classList.toggle('is-hidden', p > 0.03);
-}
-
-function showExhibit(k) {
-  if (k === S.exhibit) return;
-  S.exhibit = k;
-  const card = $('#exhibit');
-  gsap.to(card, {
-    autoAlpha: 0, x: -20, duration: 0.25, overwrite: true,
-    onComplete: () => {
-      if (k < 0) { cc(''); return; }
-      const e = CHAPTERS[S.current].exhibits[k];
-      card.querySelector('.ex-num').textContent = `${pad(k + 1)} / 05`;
-      card.querySelector('h3').textContent = e.title;
-      card.querySelector('.ex-text').textContent = e.text;
-      $('#viewBtn span').textContent = e.type === 'video' ? 'Watch >' : 'View photo >';
-      gsap.to(card, { autoAlpha: 1, x: 0, duration: 0.6, ease: 'expo.out' });
-      cc(e.caption);
-    },
-  });
-}
-
-// ---------- Overlays: lightbox + article ----------
-function openLightbox(k) {
-  if (k < 0 || !room) return;
-  S.lb = k;
-  $('#lightbox .lb-body').innerHTML = renderLightbox(CHAPTERS[S.current], k);
-  openOverlay('#lightbox');
-}
-
-function openArticle() {
-  $('#article .article__inner').innerHTML = renderArticle(CHAPTERS[S.current], S.current);
-  $('#article').scrollTop = 0;
-  openOverlay('#article');
-}
-
-function openOverlay(sel) {
-  if (S.overlay === sel) return;
-  if (S.overlay) gsap.set(S.overlay, { autoAlpha: 0 });
-  S.overlay = sel;
-  lenis.stop();
-  if (room) room.pause();
-  gsap.fromTo(sel, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, onComplete: () => { if (S.overlay === sel) engine.paused = true; } }); // stop rendering what is hidden
-}
-
-function closeOverlay(instant) {
-  if (!S.overlay) return;
-  const sel = S.overlay;
-  S.overlay = null;
-  engine.paused = false;
-  $(sel).querySelectorAll('video').forEach((v) => v.pause());
-  gsap.to(sel, { autoAlpha: 0, duration: instant === true ? 0 : 0.4 });
-  if (room) room.play();
-  if (S.phase === 'explore') lenis.start();
-}
-
-// ---------- Menu ----------
+// ---------- Index menu ----------
 function toggleMenu(force) {
   const menu = $('#menu');
   const isOpen = menu.classList.contains('is-open');
@@ -447,63 +182,18 @@ function toggleMenu(force) {
   if (open === isOpen) return;
   menu.classList.toggle('is-open', open);
   $('#menuBtn').classList.toggle('is-active', open);
-  if (!open) engine.paused = false;
-  gsap.to(menu, { autoAlpha: open ? 1 : 0, duration: 0.45, onComplete: () => { if (open && menu.classList.contains('is-open')) engine.paused = true; } });
-  if (open) lenis.stop();
-  else if (S.phase === 'explore' && !S.overlay) lenis.start();
-}
-
-function goToChapter(k) {
-  if (S.phase === 'loader') return;
-  if (S.phase === 'gate') {
-    gsap.to('#intro', { autoAlpha: 0, duration: 0.6 });
-    S.phase = 'intro';
-    arrive(k);
-    return;
-  }
-  if (S.phase === 'intro' || S.phase === 'ride') { S.target = k; arrive(k); return; }
-  if (S.busy) return;
-  if (k === S.current && S.phase !== 'gift') { replay(); return; }
-  rideTo(k);
-}
-
-// Replay the current chapter from its title card
-function replay() {
-  if (!room || S.busy || !['explore', 'title'].includes(S.phase)) return;
-  closeOverlay(true);
-  gsap.to('#exploreUI', { autoAlpha: 0, duration: 0.4 });
-  lockScroll();
-  S.phase = 'moving';
-  room.backToTitle().then(() => showTitle(S.current));
+  gsap.to(menu, { autoAlpha: open ? 1 : 0, duration: 0.45 });
 }
 
 // ---------- Finale ----------
-function finish() {
-  if (S.busy) return;
-  S.busy = true;
-  S.phase = 'gift';
-  closeOverlay(true);
-  $('#tunnelText').textContent = 'Journey complete';
-  gsap.timeline()
-    .to('#tunnel', { autoAlpha: 1, duration: 0.6 })
-    .add(() => {
-      hideChapterUI();
-      disposeRoom();
-      engine.setView(null);
-      const vid = $('#trainVideo');
-      if (vid) {
-        vid.play().catch(() => {});
-        gsap.to('#trainContainer', { autoAlpha: 1, duration: 0.8 });
-      }
-      engine.post.grade('#2E3A6B', 0.45);
-      engine.post.pulse();
-      lockScroll();
-      gsap.set('#gift', { autoAlpha: 1 });
-      cc('');
-    })
-    .to('#tunnel', { autoAlpha: 0, duration: 0.8 }, '+=0.3')
-    .from('#gift .intro__card > *', { y: 40, autoAlpha: 0, stagger: 0.12, duration: 1.2, ease: 'expo.out' }, '-=0.4')
-    .add(() => (S.busy = false));
+function showGift() {
+  cc('');
+  gsap.set('#gift', { autoAlpha: 1 });
+  gsap.from('#gift .intro__card > *', { y: 40, autoAlpha: 0, stagger: 0.12, duration: 1.2, ease: 'expo.out' });
+}
+
+function hideGift() {
+  gsap.to('#gift', { autoAlpha: 0, duration: 0.5 });
 }
 
 init();

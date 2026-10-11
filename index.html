@@ -9,15 +9,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Sometype+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;700&family=Shrikhand&display=swap" rel="stylesheet" />
 </head>
 <body class="is-locked">
+  <!-- Layer stack: #webgl (1) < #trainContainer (5) < #destination (10) < menu and controls -->
   <canvas id="webgl"></canvas>
 
-  <!-- Fixed controls (Miu Miu editorial system) -->
-  <div id="badge" class="miu-badge ctrl" aria-label="Current Destination">
+  <!-- Fixed controls -->
+  <div id="badge" class="miu-badge ctrl" aria-label="Current stop">
     <span class="miu-badge__arrow">↗</span>
     <span id="badgeNum" class="miu-badge__text">1/10</span>
   </div>
 
-  <button id="menuBtn" class="miu-icon-btn ctrl" aria-label="Open menu / notes">
+  <button id="menuBtn" class="miu-icon-btn ctrl" aria-label="Open the index of stops">
     <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
       <path d="M6 6h10"></path>
@@ -41,7 +42,6 @@
 
   <div class="ctrl-br ctrl">
     <button id="ccBtn" class="miu-chip" aria-label="Toggle captions">CC</button>
-    <button id="replayBtn" class="miu-chip" aria-label="Replay chapter">↺</button>
   </div>
   <p id="cc" class="cc"></p>
 
@@ -74,7 +74,7 @@
     <div class="mosaic mosaic--bottom"></div>
   </section>
 
-  <!-- 3. Train video & overlay (intro + rides) -->
+  <!-- 3. TrainCanvas layer: the train view and its caption overlay -->
   <div id="trainContainer" class="train-container">
     <video id="trainVideo" class="train-video" src="/media/train-window.mp4" playsinline loop muted preload="auto" disablepictureinpicture disableremoteplayback></video>
     <div id="trainOverlay">
@@ -83,50 +83,14 @@
     </div>
   </div>
 
-  <!-- 4. Chapter title card -->
-  <section id="titleCard" class="title-card">
-    <p class="eyebrow" id="tcNum">CHAPTER 01</p>
-    <h1 id="tcTitle" class="tc-title"></h1>
-    <p class="micro" id="tcCity"></p>
-    <button id="exploreBtn" class="explore-btn">EXPLORE &gt;</button>
-  </section>
+  <!-- 4. DestinationEditorial layer: filled and scrolled by src/destination/ -->
+  <main id="destination" class="destination" tabindex="-1" aria-label="Destination"></main>
 
-  <!-- 5. Room exploration UI -->
-  <div id="exploreUI">
-    <article id="exhibit" class="exhibit">
-      <p class="ex-num"></p>
-      <h3></h3>
-      <p class="ex-text"></p>
-      <button id="viewBtn" class="link-btn"><span>View &gt;</span></button>
-    </article>
-    <div id="dots" class="dots"></div>
-    <p id="hint" class="hint">Scroll to explore the room ↓</p>
-    <div id="endPanel" class="end-panel">
-      <p class="eyebrow">End of chapter</p>
-      <button id="readBtn" class="btn btn--magnetic"><span>Read the story</span></button>
-      <button id="nextBtn" class="btn btn--magnetic btn--solid"><span>Next stop →</span></button>
-    </div>
-  </div>
-
-  <!-- Overlays -->
-  <section id="article" class="overlay article" data-lenis-prevent>
-    <button id="articleClose" class="close-btn">Back to the room ✕</button>
-    <div class="article__inner"></div>
-  </section>
-
-  <section id="lightbox" class="overlay lightbox">
-    <button id="lbClose" class="close-btn">Close ✕</button>
-    <button id="lbPrev" class="lb-arrow lb-arrow--prev" aria-label="Previous">‹</button>
-    <div class="lb-body"></div>
-    <button id="lbNext" class="lb-arrow lb-arrow--next" aria-label="Next">›</button>
-  </section>
-
+  <!-- Index of stops -->
   <nav id="menu" class="overlay menu" data-lenis-prevent>
     <button id="menuClose" class="close-btn">Close ✕</button>
     <div class="menu__body"></div>
   </nav>
-
-  <div id="tunnel"><p id="tunnelText"></p></div>
 
   <!-- Finale -->
   <section id="gift">
@@ -141,9 +105,7 @@
     <div class="mosaic mosaic--bottom"></div>
   </section>
 
-  <div id="scroll-space"></div>
-
-  <!-- Print finish: paper fibre and film grain over everything -->
+  <!-- Print finish: one static paper layer -->
   <div class="paper" aria-hidden="true"></div>
   <script type="module" src="/src/main.js"></script>
 </body>
