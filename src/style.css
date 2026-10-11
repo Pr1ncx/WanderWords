@@ -44,7 +44,6 @@ body.is-locked { overflow: hidden; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; outline: none; }
 button:focus-visible, a:focus-visible { outline: 2px solid var(--marigold); outline-offset: 3px; }
 img, video { display: block; max-width: 100%; }
-#webgl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 1; }
 
 /* ---------- Fixed controls ---------- */
 .ctrl { visibility: hidden; opacity: 0; }
@@ -140,7 +139,7 @@ img, video { display: block; max-width: 100%; }
   position: fixed; inset: 0; z-index: 5; background: #000000; pointer-events: none;
   visibility: hidden; opacity: 0; overflow: hidden;
 }
-.train-video { position: absolute; inset: 0; width: 100vw; height: 100vh; object-fit: cover; display: block; will-change: transform; }
+.train-video { position: absolute; inset: 0; width: 100vw; height: 100vh; object-fit: cover; display: block; }
 #trainOverlay { position: absolute; inset: 0; z-index: 2; pointer-events: none; visibility: hidden; opacity: 0; }
 .caption {
   position: absolute; left: 0; right: 0; bottom: 22vh; text-align: center;

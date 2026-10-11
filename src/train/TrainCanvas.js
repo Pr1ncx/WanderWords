@@ -1,38 +1,34 @@
 // TrainCanvas: everything about the train layer, behind one small interface.
 // The rest of the app (journey.js) only calls these methods.
 //
-//   show() / hide() / pause() / resume()      layer control
+//   show() / pause() / resume()               layer control
 //   intro() / ride(stop) / skipRide()         the journey between stops, with captions
-//   pushThrough(stop) / pullBack(stop)        the camera moves through the train window
+//   pushThrough(stop) / pullBack(stop)        the focus pull to and from a destination
 //
-// Layer stack: #webgl (z-index 1), #trainContainer (z-index 5), destination HTML (z-index 10).
+// The train is a looping video (z-index 5, under the destination page at 10).
 //
-// Today the cabin view is the looping train video, and the push-through is a camera-style scale
-// towards the window. The WebGL train scene plugs in through attachEngine(): once an Engine with a
-// train view is attached, pause()/resume() also stop and start its render loop, and pushThrough()
-// and pullBack() are where the 3D camera dolly goes. Nothing outside this file has to change.
+// Leaving the train for a destination is a FOCUS PULL, like a camera shifting focus from the
+// background to the foreground: the video blurs and darkens while the HTML page fades in over it.
+// There is deliberately no zoom: scaling a flat video only stretches its pixels.
+// Coming back reverses it: the page fades out and the train comes back into focus.
 import gsap from 'gsap';
 
-const PUSH_SCALE = 1.35;
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SHARP = 'blur(0px) brightness(1)';
+// Reduced motion keeps the darkening but drops the blur
+const SOFT = REDUCED ? 'blur(0px) brightness(0.6)' : 'blur(20px) brightness(0.6)';
 
 export class TrainCanvas {
-  constructor({ canvas, container, video, overlay, captionEl, skipBtn, onCaption = () => {} }) {
-    this.canvas = canvas;
+  constructor({ container, video, overlay, captionEl, skipBtn, onCaption = () => {} }) {
     this.container = container;
     this.video = video;
     this.overlay = overlay;
     this.captionEl = captionEl;
     this.skipBtn = skipBtn;
     this.onCaption = onCaption;
-    this.engine = null; // the WebGL engine, once attached
     this.tl = null;
     this._done = null;
-    this.pushed = false; // true while the camera is at the window
-    if (this.video) gsap.set(this.video, { transformOrigin: '50% 55%' });
-  }
-
-  attachEngine(engine) {
-    this.engine = engine;
+    this.soft = false; // true while the train is out of focus
   }
 
   // ---- Layer control ----
@@ -47,22 +43,20 @@ export class TrainCanvas {
     this._play();
   }
 
-  // Hide and pause everything while an HTML destination page is on screen
+  // Hide and pause the train while an HTML destination page is on screen
   pause() {
     this._kill();
     if (this.video) this.video.pause();
-    if (this.engine) this.engine.paused = true;
     gsap.set(this.container, { autoAlpha: 0 });
   }
 
-  // Wake up underneath the page. If the page was opened directly (a link, the index),
-  // the camera is first placed at the window, so the pull-back has somewhere to start.
+  // Wake up underneath the page, still out of focus. If the page was opened directly
+  // (a link, the index), the train is first put into soft focus so the return has a start.
   resume() {
-    if (!this.pushed && this.video) gsap.set(this.video, { scale: PUSH_SCALE });
-    this.pushed = true;
+    if (!this.soft) gsap.set(this.video, { filter: SOFT });
+    this.soft = true;
     gsap.set(this.container, { autoAlpha: 1 });
     gsap.set(this.overlay, { autoAlpha: 0 });
-    if (this.engine) this.engine.paused = false;
     this._play();
     return Promise.resolve();
   }
@@ -111,25 +105,32 @@ export class TrainCanvas {
     return this._run((tl) => tl.to({}, { duration: 4.5 }));
   }
 
-  // ---- Through the window and back ----
+  // ---- The focus pull ----
 
-  // The camera pushes through the window until the exterior fills the viewport
+  // The train blurs and darkens. Resolves when it is soft; the page then fades in over it.
   pushThrough() {
     this._kill();
     this.caption('');
-    this.pushed = true;
+    this.soft = true;
     return new Promise((resolve) => {
       gsap.timeline({ onComplete: resolve })
         .to(this.overlay, { autoAlpha: 0, duration: 0.4 }, 0)
-        .to(this.video, { scale: PUSH_SCALE, duration: 1.6, ease: 'power2.in' }, 0);
+        .fromTo(this.video, { filter: SHARP }, { filter: SOFT, duration: REDUCED ? 0.4 : 1.4, ease: 'power2.inOut' }, 0);
     });
   }
 
-  // The camera pulls back from the window into the cabin
+  // The page is gone: the train comes back into focus. The filter is then removed entirely,
+  // so the playing video costs nothing extra.
   pullBack() {
     return new Promise((resolve) => {
-      gsap.timeline({ onComplete: () => { this.pushed = false; resolve(); } })
-        .to(this.video, { scale: 1, duration: 1.4, ease: 'power2.out' }, 0);
+      gsap.to(this.video, {
+        filter: SHARP, duration: REDUCED ? 0.3 : 1.2, ease: 'power2.out',
+        onComplete: () => {
+          gsap.set(this.video, { clearProps: 'filter' });
+          this.soft = false;
+          resolve();
+        },
+      });
     });
   }
 
