@@ -1,0 +1,83 @@
+/* The immersive experience: gateway, canvas and UI overlay.
+   Layers: canvas z-index 0, UI overlay z-index 10, gateway z-index 20. */
+
+body[data-mode='experience'] { overflow: hidden; overscroll-behavior: none; }
+
+.exp {
+  position: fixed; inset: 0;
+  background: var(--ink); color: var(--paper); font-family: var(--font-ui);
+}
+
+.exp__canvas { position: absolute; inset: 0; z-index: 0; display: block; width: 100%; height: 100%; }
+
+/* UI overlay: the overlay itself ignores the pointer, its controls do not */
+.exp__ui {
+  position: absolute; inset: 0; z-index: 10; pointer-events: none;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+.exp__ui > * { pointer-events: auto; }
+.exp-bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.exp-wordmark { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: .8125rem; letter-spacing: .28em; text-transform: uppercase; }
+.exp-tools { display: flex; gap: .25rem; }
+.exp-note { align-self: center; margin: 0; text-align: center; }
+
+.link-btn {
+  display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: 0 .75rem;
+  background: none; border: 0; color: var(--paper); cursor: pointer; opacity: .75;
+  font: 500 .6875rem/1 var(--font-ui); letter-spacing: .2em; text-transform: uppercase; text-decoration: none;
+  transition: opacity .3s;
+}
+.link-btn:hover { opacity: 1; }
+
+/* Gateway */
+.gate {
+  position: absolute; inset: 0; z-index: 20;
+  display: grid; grid-template-rows: auto 1fr auto;
+  padding: clamp(1rem, 3vw, 2.5rem); background: var(--ink);
+}
+.gate__top { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem 1rem; flex-wrap: wrap; }
+.gate__presents { margin: 0; padding-top: .9rem; font-size: .6875rem; letter-spacing: .42em; text-transform: uppercase; color: var(--muted); }
+.gate__count {
+  margin: 0; font-family: var(--font-display); font-weight: 400; font-variant-numeric: tabular-nums;
+  font-size: clamp(2.5rem, 7vw, 6rem); line-height: 1; letter-spacing: .02em; color: var(--muted);
+}
+
+/* The staggered stack. Each line sits on its own offset; the last word spans the full width. */
+.gate__stack {
+  align-self: center; margin: 0;
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  line-height: .86; letter-spacing: -.015em;
+  font-size: clamp(2.75rem, min(14vw, 15.5vh), 12rem);
+}
+.gate__line { display: block; }
+.gate__line--2 { margin-left: 14%; }
+.gate__line--3 { margin-left: 4%; }
+.gate__line--4 { margin-left: 28%; }
+.gate__hour {
+  display: flex; justify-content: space-between; /* four letters pushed to the edges = extreme tracking */
+  margin-top: .2em; font-weight: 400; font-size: .78em; line-height: 1;
+}
+
+.gate__bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap; }
+.gate__sound { display: flex; align-items: center; gap: .75rem; max-width: 22rem; margin: 0; font-size: .8125rem; line-height: 1.5; color: var(--muted); }
+.gate__sound svg { flex: none; }
+
+.gate__enter {
+  display: inline-flex; align-items: center; justify-content: center; gap: .9rem;
+  min-width: 11rem; min-height: 56px; padding: 0 1.5rem;
+  background: transparent; color: var(--paper); border: 1px solid var(--paper); cursor: pointer;
+  font: 500 .8125rem/1 var(--font-ui); letter-spacing: .24em; text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  transition: background-color .35s, color .35s, opacity .35s;
+}
+.gate__enter:disabled { opacity: .55; cursor: progress; }
+.gate__enter:not(:disabled):hover { background: var(--paper); color: var(--ink); } /* colour inversion */
+.gate__enter-icon { display: inline-flex; }
+
+@media (max-width: 40rem) {
+  .gate__line--2 { margin-left: 8%; }
+  .gate__line--4 { margin-left: 18%; }
+  .gate__bottom { flex-direction: column; align-items: stretch; }
+  .gate__enter { width: 100%; }
+}

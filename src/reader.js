@@ -21,7 +21,7 @@ const header = () => `
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <a class="wordmark" href="/" data-link>WanderWords</a>
-    <nav class="site-nav" aria-label="Primary"><a href="/" data-link>Index</a></nav>
+    <nav class="site-nav" aria-label="Primary"><a href="/read" data-link>Index</a><a href="/" data-link>Immersive</a></nav>
   </header>`;
 
 function photoHtml(d) {

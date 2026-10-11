@@ -1,78 +1,56 @@
-import gsap from 'gsap';
+// Audio bus (Web Audio API).
+// Browsers only allow audio after a user gesture, so nothing plays until unlock() is called
+// from the Enter click. The mute choice is remembered between visits.
+// Later milestones add the ambient bed, the dispatch layers and the dial ticks on top of this.
+const KEY = 'ww:muted';
 
-// Sound: one looping bed at a time (the journey, or the current city), crossfaded, plus one-shot effects.
-// Every file is optional. A missing city bed falls back to the journey bed; a missing effect stays silent.
-const JOURNEY = '/audio/ambient.mp3';
-const BED_VOLUME = 0.4;
+function readMuted() {
+  try { return localStorage.getItem(KEY) === '1'; } catch { return false; }
+}
 
-export class Soundscape {
+class AudioBus {
   constructor() {
-    this.on = false;
-    this.want = JOURNEY;
-    this.beds = new Map();
-    this.shots = new Map();
+    this.ctx = null;
+    this.master = null;
+    this.muted = readMuted();
   }
 
-  bed(src) {
-    let b = this.beds.get(src);
-    if (!b) {
-      const el = new Audio();
-      el.loop = true;
-      el.preload = 'none';
-      el.volume = 0;
-      b = { el, level: { v: 0 }, failed: false };
-      el.addEventListener('error', () => {
-        b.failed = true;
-        if (this.want === src) this.apply();
-      });
-      el.src = src;
-      this.beds.set(src, b);
+  // Call from inside a click or key handler. Returns false if Web Audio is not available.
+  unlock() {
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      this.ctx = new AC();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = this.muted ? 0 : 1;
+      this.master.connect(this.ctx.destination);
     }
-    return b;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    return true;
   }
 
-  // A city bed, or null for the journey bed
-  setBed(src) {
-    this.want = src || JOURNEY;
-    this.apply();
+  setMuted(muted) {
+    this.muted = muted;
+    try { localStorage.setItem(KEY, muted ? '1' : '0'); } catch { /* storage unavailable: still works for this visit */ }
+    if (this.ctx) this.master.gain.setTargetAtTime(muted ? 0 : 1, this.ctx.currentTime, 0.06);
   }
 
-  setEnabled(on) {
-    this.on = on;
-    this.apply();
-  }
-
-  apply() {
-    this.bed(JOURNEY);
-    const src = this.bed(this.want).failed ? JOURNEY : this.want;
-    for (const [key, b] of this.beds) {
-      const target = this.on && key === src && !b.failed ? BED_VOLUME : 0;
-      if (target) b.el.play().catch(() => {});
-      gsap.to(b.level, {
-        v: target, duration: target ? 2.4 : 1.2, ease: 'sine.inOut', overwrite: true,
-        onUpdate: () => (b.el.volume = b.level.v),
-        onComplete: () => { if (!target) b.el.pause(); },
-      });
-    }
-  }
-
-  // Plays the first available file, e.g. play('/audio/goa-swell.mp3', '/audio/swell.mp3')
-  play(...srcs) {
-    if (!this.on) return;
-    const [src, ...rest] = srcs.filter((s) => !(this.shots.get(s) || {}).failed);
-    if (!src) return;
-    let a = this.shots.get(src);
-    if (!a) {
-      a = new Audio(src);
-      a.preload = 'auto';
-      a.failed = false;
-      this.shots.set(src, a);
-    }
-    a.onerror = () => {
-      a.failed = true;
-      if (rest.length) this.play(...rest);
-    };
-    a.currentTime = 0;
-    a.play().catch(() => {});
+  // A soft, synthesised rising tone. Confirms that audio is unlocked. No audio file needed.
+  chime() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(196, t);
+    osc.frequency.exponentialRampToValueAtTime(293.66, t + 0.9);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.08, t + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
+    osc.connect(gain).connect(this.master);
+    osc.start(t);
+    osc.stop(t + 1.3);
   }
 }
+
+export const audio = new AudioBus();
