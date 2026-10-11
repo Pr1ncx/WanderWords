@@ -1,93 +1,94 @@
+// Minimal three.js engine for the immersive experience.
+// One full-viewport canvas, one scene, one camera. Later milestones add the plates,
+// the depth shader and the camera moves on top of this.
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { PostFX } from './post.js';
 
-// One renderer, many views (the train, a chapter's reel). Each view has scene, camera, update(), resize().
-// The canvas is sized by CSS to the picture inside the cinema frame; the renderer follows it.
-// Views with toneMapped === false (real footage) skip tone mapping so the footage keeps its own colour.
 export class Engine {
   constructor(canvas) {
     this.canvas = canvas;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, stencil: false, powerPreference: 'high-performance' });
-    this.maxRatio = Math.min(devicePixelRatio, 1.5);
-    this.ratio = this.maxRatio;
-    this.renderer.setPixelRatio(this.ratio);
-    this.renderer.toneMapping = THREE.NeutralToneMapping;
-    this.renderer.toneMappingExposure = 1.0;
-    const pmrem = new THREE.PMREMGenerator(this.renderer);
-    this.env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    pmrem.dispose();
-    this.post = new PostFX(this.renderer);
+    // Throws if a WebGL context cannot be created. The caller falls back to Reader Mode.
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    // Cap the pixel ratio so phones do not render at 3x
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2));
+    this.renderer.setClearColor(0x0c0a09, 1); // --ink
 
-    this.pointer = new THREE.Vector2(); // -1..1 across the picture, y down
-    this.view = null;
-    this.paused = false; // set while a full-screen layer hides the canvas
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+    this.camera.position.set(0, 0, 8);
+
+    this.updaters = new Set(); // functions called every frame: fn(dt, t)
     this.clock = new THREE.Clock();
-    this.perf = { frames: 0, slow: 0, good: 0 };
+    this.running = false; // is the loop active right now
+    this.wanted = false; // should it run whenever the tab is visible
 
-    addEventListener('pointermove', (e) => {
-      const r = canvas.getBoundingClientRect();
-      this.pointer.set(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1);
-    }, { passive: true });
-    addEventListener('resize', () => this.resize());
-    if ('ResizeObserver' in window) new ResizeObserver(() => this.resize()).observe(canvas);
-    this.resize();
-  }
-
-  size() {
-    return [this.canvas.clientWidth || innerWidth, this.canvas.clientHeight || innerHeight];
-  }
-
-  setView(view) {
-    this.view = view;
-    this.renderer.toneMapping = view.toneMapped === false ? THREE.NoToneMapping : THREE.NeutralToneMapping;
-    this.perf.frames = this.perf.slow = 0;
+    this._loop = this._loop.bind(this);
+    this._onVisibility = () => {
+      // Pause rendering when the tab is hidden
+      if (document.hidden) this._halt();
+      else if (this.wanted) this.start();
+    };
+    document.addEventListener('visibilitychange', this._onVisibility);
+    this._resize = () => this.resize();
+    window.addEventListener('resize', this._resize);
+    if ('ResizeObserver' in window) {
+      this._ro = new ResizeObserver(this._resize);
+      this._ro.observe(canvas);
+    }
     this.resize();
   }
 
   resize() {
-    const [w, h] = this.size();
+    const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
+    if (!w || !h) return;
     this.renderer.setSize(w, h, false);
-    this.post.setSize(w, h);
-    if (this.view) this.view.resize(w / h);
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
   }
 
-  tick() {
-    const raw = this.clock.getDelta();
-    const dt = Math.min(raw, 0.05), t = this.clock.elapsedTime;
-    if (!this.view || this.paused || document.hidden) return;
-    this.view.update(dt, t, this.pointer);
-    this.post.render(this.view.scene, this.view.camera, dt);
-    this.adapt(raw);
+  // Register a per-frame function. Returns a function that removes it.
+  onUpdate(fn) {
+    this.updaters.add(fn);
+    return () => this.updaters.delete(fn);
   }
 
-  // Keep motion smooth: lower the resolution when frames run long, recover when there is headroom
-  adapt(raw) {
-    const p = this.perf;
-    if (raw > 0.25) return; // one-off hitch (texture upload, tab switch): ignore
-    p.frames++;
-    if (raw > 1 / 45) p.slow++;
-    if (p.frames < 90) return;
-    if (p.slow > 20 && this.ratio > 0.75) {
-      this.setRatio(Math.max(0.75, this.ratio - 0.25));
-      p.good = 0;
-    } else if (p.slow < 3 && this.ratio < this.maxRatio && ++p.good >= 4) {
-      this.setRatio(Math.min(this.maxRatio, this.ratio + 0.125));
-      p.good = 0;
-    }
-    p.frames = p.slow = 0;
+  // Draw one frame now. Used during preload to compile everything before the reveal.
+  renderOnce() {
+    this.renderer.render(this.scene, this.camera);
   }
 
-  setRatio(r) {
-    this.ratio = r;
-    this.renderer.setPixelRatio(r);
-    this.resize();
+  start() {
+    this.wanted = true;
+    if (this.running || document.hidden) return;
+    this.running = true;
+    this.clock.getDelta(); // discard the time spent paused
+    this.renderer.setAnimationLoop(this._loop);
   }
-}
 
-// Tighter lens on wide scope screens, wider lens on portrait screens
-export function fitCamera(camera, aspect) {
-  camera.aspect = aspect;
-  camera.fov = aspect < 1 ? Math.min(80, (50 / aspect) * 0.75) : aspect > 1.9 ? 38 : 50;
-  camera.updateProjectionMatrix();
+  stop() {
+    this.wanted = false;
+    this._halt();
+  }
+
+  _halt() {
+    this.running = false;
+    this.renderer.setAnimationLoop(null);
+  }
+
+  _loop() {
+    const dt = Math.min(this.clock.getDelta(), 0.05);
+    const t = this.clock.elapsedTime;
+    this.updaters.forEach((fn) => fn(dt, t));
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  dispose() {
+    this.stop();
+    document.removeEventListener('visibilitychange', this._onVisibility);
+    window.removeEventListener('resize', this._resize);
+    if (this._ro) this._ro.disconnect();
+    this.updaters.clear();
+    this.renderer.dispose();
+    this.renderer.forceContextLoss();
+  }
 }

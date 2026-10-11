@@ -21,7 +21,7 @@ const header = () => `
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <a class="wordmark" href="/" data-link>WanderWords</a>
-    <nav class="site-nav" aria-label="Primary"><a href="/" data-link>Index</a></nav>
+    <nav class="site-nav" aria-label="Primary"><a href="/read" data-link>Index</a><a href="/" data-link>Immersive</a></nav>
   </header>`;
 
 function photoHtml(d) {
@@ -131,7 +131,7 @@ export function indexPage(all) {
 
 export function notFoundPage() {
   return {
-    html: `${header()}<main id="main" tabindex="-1"><h1 class="display" tabindex="-1">Not found</h1><p class="lede"><a href="/" data-link>Back to the index</a></p></main>`,
+    html: `${header()}<main id="main" tabindex="-1"><h1 class="display" tabindex="-1">Not found</h1><p class="lede"><a href="/read" data-link>Back to the index</a></p></main>`,
     accent: null,
     title: 'Not found · WanderWords',
     description: 'This page does not exist.',
