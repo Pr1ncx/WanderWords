@@ -76,7 +76,7 @@
 
   <!-- 3. Train video & overlay (intro + rides) -->
   <div id="trainContainer" class="train-container">
-    <video id="trainVideo" class="train-video" src="/media/train-window.mp4" playsinline loop muted preload="auto"></video>
+    <video id="trainVideo" class="train-video" src="/media/train-window.mp4" playsinline loop muted preload="auto" disablepictureinpicture disableremoteplayback></video>
     <div id="trainOverlay">
       <p id="trainCaption" class="caption"></p>
       <button id="skipBtn" class="skip-intro">SKIP INTRO &gt;</button>
@@ -145,7 +145,6 @@
 
   <!-- Print finish: paper fibre and film grain over everything -->
   <div class="paper" aria-hidden="true"></div>
-  <div class="grain" aria-hidden="true"></div>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>
