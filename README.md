@@ -2,20 +2,19 @@
 
 *Ten stops. Ten stories. One India.*
 
-An interactive, luxury digital travel magazine told as an editorial journey through Srinagar, Manali, Amritsar, Jaipur, Agra, Goa, Munnar, Gangtok, Rann of Kutch and Shillong.
+An interactive digital travel magazine told as an editorial journey through Srinagar, Manali, Amritsar, Jaipur, Agra, Goa, Munnar, Gangtok, Rann of Kutch and Shillong.
 
 ## The Experience
 
-1. **Loader**: Clean preloader with interactive sound prompt.
-2. **Cover Gate**: Minimalist editorial gateway with "The INDIAN JOURNEY begins".
-3. **Cinematic Train Journey**: AI-generated photorealistic train window video bridge (`public/media/train-window.mp4`) carrying travelers across landscapes with captions and a minimal `SKIP >` button.
-4. **Destination Rooms**: High-end architectural 3D exhibition pavilions for each city built with Three.js, featuring ambient lighting, brass picture lights, and authentic cultural signatures.
-5. **Interactive Exhibits**: Scroll to navigate through 5 exhibits per destination (hero video arch + 4 framed gallery photographs). Click any exhibit to open a high-res lightbox.
-6. **Editorial Story**: Full long-form magazine article with curated photos, video exhibits, and travel notes.
-7. **Design Language**: Minimalist editorial UI inspired by Miu Miu aesthetics (Work Sans & Sometype Mono typography, electric cobalt station badges, angled tape card buttons, and full-bleed viewport).
-8. **Finale**: Complete the tour and download a personalized stamped postcard.
+Two layers, joined by one state machine:
 
-The top-right notebook menu provides instant navigation to any chapter and displays project credits. Captions (CC) and chapter replay controls are pinned to the bottom corner.
+1. **Loader and cover**: preloader with a sound prompt, then "The INDIAN JOURNEY begins".
+2. **The train** (video): a looping, photorealistic train-window video (`public/media/train-window.mp4`) carries you between stops, with captions and a `SKIP >` button.
+3. **The focus pull**: arriving at a stop, the train blurs and darkens (like a camera shifting focus) while the destination page fades in over it. There is no zoom, because scaling a flat video only stretches its pixels.
+4. **The destination** (HTML): a smooth-scrolling editorial page with parallax and text reveals: hero, introduction, Attractions, Local Food, Festivals, Travel Tips. Each stop uses one of three layouts.
+5. **Next Stop**: the page fades out, the train comes back into focus, and the ride continues to the next stop. After the last stop, download a postcard.
+
+Addresses follow the journey: `/` on the train, `/stop/<id>` on a destination page (for example `/stop/goa`). A link opens a destination directly, and the browser Back button goes from the page to the train. A static host needs a fallback to `index.html`. The index menu (top right) jumps to any stop.
 
 ## Run Locally
 
@@ -24,32 +23,30 @@ npm install
 npm run dev
 ```
 
-Build for production with:
+Build for production with `npm run build`.
 
-```bash
-npm run build
-```
+## Media and Content
 
-## Media Assets & Content
-
-- **Train Video**: Stored at `public/media/train-window.mp4` for the cinematic window view.
-- **Destination Media**: High-res photographs and videos placed in `public/media/<city>/`.
-- **Chapter Copy**: All destination text, history, and exhibits live in `src/chapters.js`.
-- **Audio**: Ambient soundscapes and effects located in `public/audio/`.
+- **Train video**: `public/media/train-window.mp4`. For smooth playback keep it about 720p, H.264, 4 to 5 MB, 24 to 30 fps, with fast-start.
+- **Destination media**: photographs in `public/media/<city>/` (`cover.webp`, `01.webp` to `06.webp`). A missing image is replaced by a painted placeholder.
+- **Chapter copy**: all destination text lives in `src/chapters.js`. Festivals and budget/safety are `[[PLACEHOLDER]]` blocks until that content is written.
+- **Audio**: `public/audio/`. Missing files stay silent.
 
 ## Code Map
 
 | File | Purpose |
 |---|---|
-| `src/main.js` | App orchestration: flow state machine, video transitions, chapter lifecycle, UI events |
-| `src/engine.js` | WebGL renderer, camera controller, and view management |
-| `src/room.js` | Architectural 3D room pavilion, lighting, photo frames, video arches, and interactive camera movement |
-| `src/chapters.js` | Curated editorial content, exhibits, and styling metadata for all 10 stops |
-| `src/ui.js` | Magazine reader article, lightbox, and navigation menu templates |
-| `src/media.js` | Dynamic image/video loaders with procedural fallbacks |
-| `src/textures.js` | Procedural PBR textures: plaster walls, floorboards, marble inlays, and textiles |
-| `src/post.js` | PostFX pipeline: color grading, bloom, subtle vignette, and exposure tuning |
-| `src/grain.css` | Film grain overlay and tactile micro-textures |
-| `src/style.css` | Miu Miu editorial design tokens, full-bleed layout, and component styling |
+| `src/main.js` | Boot and wiring: builds the layers and the journey, runs the loader, cover, menu and finale |
+| `src/journey.js` | The state machine and routing: which layer is on screen, and the URL |
+| `src/train/TrainCanvas.js` | The train layer: ride, captions, and the focus pull to and from a destination |
+| `src/destination/DestinationEditorial.js` | The destination page layer: open, close, Lenis smooth scroll, GSAP ScrollTrigger |
+| `src/destination/template.js` | The HTML of one destination page |
+| `src/editorial.css` | Destination page styles and the three layouts |
+| `src/chapters.js` | Content for all 10 stops |
+| `src/ui.js` | The index menu template |
+| `src/media.js` | Painted placeholders for missing images |
+| `src/fx.js` | Text splitting, magnetic buttons, the postcard |
+| `src/grain.css` | One static paper layer |
+| `src/style.css` | Design tokens, controls, loader, cover, train layer, menu |
 
-Built with Vite, Three.js, GSAP and Lenis.
+Built with Vite, GSAP (with ScrollTrigger) and Lenis.

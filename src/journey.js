@@ -1,6 +1,6 @@
 // The journey: ONE state machine decides which layer is on screen.
 //
-//   TrainCanvas          (WebGL canvas + train view, z-index 5)
+//   TrainCanvas          (the train video, z-index 5)
 //   DestinationEditorial (smooth-scrolling HTML page,  z-index 10)
 //
 // The two components never talk to each other. Only this file does.
@@ -62,16 +62,16 @@ export function createJourney({ chapters, train, editorial }) {
 
   // ---- Moves ----
 
-  // Into a destination. via 'window': the camera pushes through the train window first.
+  // Into a destination. via 'window': a focus pull first (the train blurs and darkens).
   // via 'direct': no train shown (deep link, index jump).
   async function enterStop(i, via) {
     current = i;
     set('entering');
     emit('stop', i);
-    if (via === 'window') await train.pushThrough(chapters[i]); // exterior fills the viewport
+    if (via === 'window') await train.pushThrough(chapters[i]); // focus pull: no zoom
     setUrl(i);
     await editorial.open(chapters[i], i); // the HTML page fades in over the train
-    train.pause(); // then the WebGL canvas is hidden and paused
+    train.pause(); // then the train is hidden and paused
     set('destination');
     settle();
   }
@@ -80,10 +80,10 @@ export function createJourney({ chapters, train, editorial }) {
   async function leaveStop() {
     if (phase !== 'destination' || busy()) return;
     set('leaving');
-    await train.resume(); // the canvas wakes up underneath the page
+    await train.resume(); // the train wakes up underneath the page, still out of focus
     await editorial.close(); // the page fades out
     setUrl(-1);
-    await train.pullBack(chapters[current]); // the camera pulls back from the window into the cabin
+    await train.pullBack(chapters[current]); // the train comes back into focus
     const next = current + 1;
     if (next >= chapters.length) {
       set('finale');

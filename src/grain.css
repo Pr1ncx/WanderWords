@@ -1,6 +1,5 @@
 /* Print finish: one static paper layer.
-   Plain alpha, no blend mode, so the browser never has to re-blend the WebGL canvas or the train
-   video every frame. Film grain, vignette and ink blacks are done once, in the post shader (post.js). */
+   Plain alpha, no blend mode, so the browser never has to re-blend the train video every frame. */
 .paper {
   position: fixed;
   inset: 0;

@@ -1,6 +1,6 @@
 // Boot and wiring. The experience is two separate layers connected by one state machine:
 //
-//   TrainCanvas          src/train/TrainCanvas.js                    the journey (WebGL / train view)
+//   TrainCanvas          src/train/TrainCanvas.js                    the journey (the train video)
 //   DestinationEditorial src/destination/DestinationEditorial.js     a destination (HTML page)
 //   journey              src/journey.js                              which layer is on screen, and the URL
 //
@@ -69,7 +69,6 @@ function refreshCC() {
 
 // ---------- The two layers and the journey that connects them ----------
 const train = new TrainCanvas({
-  canvas: $('#webgl'),
   container: $('#trainContainer'),
   video: $('#trainVideo'),
   overlay: $('#trainOverlay'),
