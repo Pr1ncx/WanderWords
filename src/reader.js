@@ -21,7 +21,7 @@ const header = () => `
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <a class="wordmark" href="/" data-link>WanderWords</a>
-    <nav class="site-nav" aria-label="Primary"><a href="/read" data-link>Index</a><a href="/" data-link>Immersive</a></nav>
+    <nav class="site-nav" aria-label="Primary"><a href="/read" data-link>Index</a><a href="/credits" data-link>Credits</a><a href="/" data-link>Immersive</a></nav>
   </header>`;
 
 function photoHtml(d) {
@@ -73,7 +73,7 @@ function dispatchHtml(d, p) {
     <p class="kicker">Dispatch ${p.n} · ${esc(p.pillar)}</p>
     <h2 id="h-${p.key}">${esc(p.label)}</h2>
     <p class="dispatch-title">${text(x.title, 'Dispatch title')}</p>
-    <div class="prose">${paras(x.body, 'Body copy, 120 to 200 words')}</div>
+    <div class="prose">${paras(bodyFor(d, p.key), 'Body copy, 120 to 200 words')}</div>
     ${dispatchExtras(p.key, x)}
   </section>`;
 }
@@ -128,6 +128,16 @@ export function indexPage(all) {
     description: 'A travel magazine of ten hours: Srinagar, Manali, Amritsar, Jaipur, Agra, Goa, Munnar, Gangtok, Rann of Kutch and Shillong.',
   };
 }
+
+// Field Notes carry one natural sentence that implies the hour (the clue for the dial)
+export function bodyFor(d, key) {
+  const x = (d.dispatches || {})[key] || {};
+  if (key === 'fieldNotes' && has(d.hourClue)) return [x.body, d.hourClue].filter(has).join('\n\n');
+  return x.body;
+}
+
+// Shared with the immersive experience so the panels and the Reader pages never drift apart
+export { PILLARS, esc, has, ph, text, paras, dispatchExtras, header as pageHeader };
 
 export function notFoundPage() {
   return {
