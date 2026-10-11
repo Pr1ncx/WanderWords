@@ -2,10 +2,12 @@
 //   /                      the immersive experience (front door), loaded on demand
 //   /read                  Reader index
 //   /destinations/:slug    Reader page for one destination
+//   /credits               Credits
 import './styles/tokens.css';
 import './styles/reader.css';
 import DESTINATIONS from './data/destinations.json';
 import { indexPage, destinationPage, notFoundPage } from './reader.js';
+import { creditsPage } from './credits.js';
 import { webglAvailable } from './support.js';
 
 const app = document.getElementById('app');
@@ -20,6 +22,7 @@ let navToken = 0; // guards against a slow import finishing after the user has m
 
 function readerPage(path) {
   if (path === '/read') return indexPage(DESTINATIONS);
+  if (path === '/credits') return creditsPage(DESTINATIONS);
   const m = path.match(/^\/destinations\/([a-z0-9-]+)$/);
   if (m) {
     const i = DESTINATIONS.findIndex((d) => d.slug === m[1]);
@@ -79,9 +82,15 @@ async function show(pathname, { focus = true } = {}) {
   const page = readerPage(path);
   app.innerHTML = page.html;
   applyHead(page);
-  if (focus) {
+  window.scrollTo(0, 0);
+  const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+  if (target) {
+    // A link to one dispatch, e.g. /destinations/goa#h-table
+    target.scrollIntoView();
+    target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+  } else if (focus) {
     // Move focus to the page heading so keyboard and screen reader users land at the top
-    window.scrollTo(0, 0);
     const h1 = app.querySelector('h1');
     if (h1) h1.focus({ preventScroll: true });
   }

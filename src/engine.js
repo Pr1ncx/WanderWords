@@ -1,6 +1,5 @@
 // Minimal three.js engine for the immersive experience.
-// One full-viewport canvas, one scene, one camera. Later milestones add the plates,
-// the depth shader and the camera moves on top of this.
+// One full-viewport canvas, one scene, one camera.
 import * as THREE from 'three';
 
 export class Engine {
@@ -16,6 +15,12 @@ export class Engine {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
     this.camera.position.set(0, 0, 8);
+
+    this.onLost = null; // set by the experience: called if the WebGL context is lost
+    canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      if (this.onLost) this.onLost();
+    });
 
     this.updaters = new Set(); // functions called every frame: fn(dt, t)
     this.clock = new THREE.Clock();
@@ -83,6 +88,7 @@ export class Engine {
   }
 
   dispose() {
+    this.onLost = null; // forceContextLoss below must not trigger the fallback
     this.stop();
     document.removeEventListener('visibilitychange', this._onVisibility);
     window.removeEventListener('resize', this._resize);

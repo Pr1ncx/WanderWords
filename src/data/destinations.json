@@ -1,7 +1,7 @@
 [
   {
     "slug": "srinagar", "name": "Srinagar", "region": "Jammu & Kashmir", "chapter": 1,
-    "hour": "05:40", "hourMinutes": 340, "hourToleranceMinutes": 20, "hourClue": "",
+    "hour": "05:40", "hourMinutes": 340, "hourToleranceMinutes": 20, "hourClue": "Be on the water by twenty to six, before the mist lifts off the lake.",
     "accent": "#7FB3C8", "contentStatus": "carried-over-unverified",
     "grades": { "night": {}, "dawn": {}, "day": {}, "dusk": {}, "true": {} },
     "photo": { "src": "", "depth": "", "alt": "Mist on Dal Lake with shikaras at first light", "credit": "" },
@@ -20,7 +20,7 @@
   },
   {
     "slug": "manali", "name": "Manali", "region": "Himachal Pradesh", "chapter": 2,
-    "hour": "07:10", "hourMinutes": 430, "hourToleranceMinutes": 20, "hourClue": "",
+    "hour": "07:10", "hourMinutes": 430, "hourToleranceMinutes": 20, "hourClue": "Stand on the ridge at ten past seven, when the first sun reaches the peaks.",
     "accent": "#8DB38F", "contentStatus": "carried-over-unverified",
     "grades": { "night": {}, "dawn": {}, "day": {}, "dusk": {}, "true": {} },
     "photo": { "src": "", "depth": "", "alt": "First sun on the Pir Panjal ridgeline above Manali", "credit": "" },
@@ -39,7 +39,7 @@
   },
   {
     "slug": "amritsar", "name": "Amritsar", "region": "Punjab", "chapter": 3,
-    "hour": "04:15", "hourMinutes": 255, "hourToleranceMinutes": 20, "hourClue": "",
+    "hour": "04:15", "hourMinutes": 255, "hourToleranceMinutes": 20, "hourClue": "Arrive at a quarter past four, in the dark hour before dawn.",
     "accent": "#D9A93F", "contentStatus": "carried-over-unverified",
     "grades": { "night": {}, "dawn": {}, "day": {}, "dusk": {}, "true": {} },
     "photo": { "src": "", "depth": "", "alt": "The Golden Temple before dawn, reflected in the Amrit Sarovar", "credit": "" },
@@ -58,7 +58,7 @@
   },
   {
     "slug": "jaipur", "name": "Jaipur", "region": "Rajasthan", "chapter": 4,
-    "hour": "06:45", "hourMinutes": 405, "hourToleranceMinutes": 20, "hourClue": "",
+    "hour": "06:45", "hourMinutes": 405, "hourToleranceMinutes": 20, "hourClue": "Stand in front of the Hawa Mahal by a quarter to seven, when the first light finds its windows.",
     "accent": "#E08A82", "contentStatus": "carried-over-unverified",
     "grades": { "night": {}, "dawn": {}, "day": {}, "dusk": {}, "true": {} },
     "photo": { "src": "", "depth": "", "alt": "Hawa Mahal catching first light", "credit": "" },
@@ -77,7 +77,7 @@
   },
   {
     "slug": "agra", "name": "Agra", "region": "Uttar Pradesh", "chapter": 5,
-    "hour": "06:00", "hourMinutes": 360, "hourToleranceMinutes": 20, "hourClue": "",
+    "hour": "06:00", "hourMinutes": 360, "hourToleranceMinutes": 20, "hourClue": "Reach the Taj at six sharp, as it rises out of the morning haze.",
     "accent": "#C97A7A", "contentStatus": "carried-over-unverified",
     "grades": { "night": {}, "dawn": {}, "day": {}, "dusk": {}, "true": {} },
     "photo": { "src": "", "depth": "", "alt": "The Taj Mahal rising out of morning haze", "credit": "" },
@@ -96,7 +96,7 @@
   },
   {
     "slug": "goa", "name": "Goa", "region": "Goa", "chapter": 6,
-    "hour": "18:40", "hourMinutes": 1120, "hourToleranceMinutes": 20, "hourClue": "",
+    "hour": "18:40", "hourMinutes": 1120, "hourToleranceMinutes": 20, "hourClue": "Walk down to the beach at twenty to seven, as the shacks begin to light up.",
     "accent": "#5E93D6", "contentStatus": "carried-over-unverified",
     "grades": { "night": {}, "dawn": {}, "day": {}, "dusk": {}, "true": {} },
     "photo": { "src": "", "depth": "", "alt": "Blue hour on a Goan beach, shacks lighting up", "credit": "" },
@@ -115,7 +115,7 @@
   },
   {
     "slug": "munnar", "name": "Munnar", "region": "Kerala", "chapter": 7,
-    "hour": "08:00", "hourMinutes": 480, "hourToleranceMinutes": 20, "hourClue": "",
+    "hour": "08:00", "hourMinutes": 480, "hourToleranceMinutes": 20, "hourClue": "Wait until eight o'clock, when the mist begins to lift off the tea slopes.",
     "accent": "#7DBF8C", "contentStatus": "carried-over-unverified",
     "grades": { "night": {}, "dawn": {}, "day": {}, "dusk": {}, "true": {} },
     "photo": { "src": "", "depth": "", "alt": "Mist lifting off the tea slopes of Munnar", "credit": "" },
@@ -134,7 +134,7 @@
   },
   {
     "slug": "gangtok", "name": "Gangtok", "region": "Sikkim", "chapter": 8,
-    "hour": "05:15", "hourMinutes": 315, "hourToleranceMinutes": 20, "hourClue": "",
+    "hour": "05:15", "hourMinutes": 315, "hourToleranceMinutes": 20, "hourClue": "Wake at a quarter past five to watch Kanchenjunga turn gold.",
     "accent": "#E07A64", "contentStatus": "carried-over-unverified",
     "grades": { "night": {}, "dawn": {}, "day": {}, "dusk": {}, "true": {} },
     "photo": { "src": "", "depth": "", "alt": "Kanchenjunga turning gold above Gangtok", "credit": "" },
@@ -153,7 +153,7 @@
   },
   {
     "slug": "kutch", "name": "Rann of Kutch", "region": "Gujarat", "chapter": 9,
-    "hour": "23:50", "hourMinutes": 1430, "hourToleranceMinutes": 20, "hourClue": "",
+    "hour": "23:50", "hourMinutes": 1430, "hourToleranceMinutes": 20, "hourClue": "Walk out onto the salt at ten to midnight, under a full moon.",
     "accent": "#D9835F", "contentStatus": "carried-over-unverified",
     "grades": { "night": {}, "dawn": {}, "day": {}, "dusk": {}, "true": {} },
     "photo": { "src": "", "depth": "", "alt": "The white salt desert of the Rann of Kutch under a full moon", "credit": "" },
@@ -172,7 +172,7 @@
   },
   {
     "slug": "shillong", "name": "Shillong", "region": "Meghalaya", "chapter": 10,
-    "hour": "15:45", "hourMinutes": 945, "hourToleranceMinutes": 20, "hourClue": "",
+    "hour": "15:45", "hourMinutes": 945, "hourToleranceMinutes": 20, "hourClue": "Plan to be under cover by a quarter to four, when the afternoon rain rolls over the hills.",
     "accent": "#6FA8B5", "contentStatus": "carried-over-unverified",
     "grades": { "night": {}, "dawn": {}, "day": {}, "dusk": {}, "true": {} },
     "photo": { "src": "", "depth": "", "alt": "Afternoon rain rolling over the Khasi Hills", "credit": "" },

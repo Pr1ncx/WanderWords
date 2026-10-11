@@ -1,5 +1,5 @@
 /* The immersive experience: gateway, canvas and UI overlay.
-   Layers: canvas z-index 0, UI overlay z-index 10, gateway z-index 20. */
+   Layers: canvas z-index 0, UI overlay z-index 10, gateway z-index 20, index z-index 30. */
 
 body[data-mode='experience'] { overflow: hidden; overscroll-behavior: none; }
 
@@ -8,19 +8,15 @@ body[data-mode='experience'] { overflow: hidden; overscroll-behavior: none; }
   background: var(--ink); color: var(--paper); font-family: var(--font-ui);
 }
 
-.exp__canvas { position: absolute; inset: 0; z-index: 0; display: block; width: 100%; height: 100%; }
+.exp__canvas { position: absolute; inset: 0; z-index: 0; display: block; width: 100%; height: 100%; touch-action: none; }
 
-/* UI overlay: the overlay itself ignores the pointer, its controls do not */
-.exp__ui {
-  position: absolute; inset: 0; z-index: 10; pointer-events: none;
-  display: flex; flex-direction: column; justify-content: space-between;
-  padding: clamp(1rem, 3vw, 2rem);
-}
-.exp__ui > * { pointer-events: auto; }
-.exp-bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+/* UI overlay: the overlay itself ignores the pointer so the canvas can be dragged; its controls do not */
+.exp__ui { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+.hud { position: absolute; inset: 0; pointer-events: none; }
+.hud button, .hud a, .hud [role='slider'], .hud .panel, .hud .hud-name, .hud .hud-hour { pointer-events: auto; }
+.hud-name, .hud-hour { pointer-events: none; }
+
 .exp-wordmark { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: .8125rem; letter-spacing: .28em; text-transform: uppercase; }
-.exp-tools { display: flex; gap: .25rem; }
-.exp-note { align-self: center; margin: 0; text-align: center; }
 
 .link-btn {
   display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: 0 .75rem;
@@ -29,6 +25,159 @@ body[data-mode='experience'] { overflow: hidden; overscroll-behavior: none; }
   transition: opacity .3s;
 }
 .link-btn:hover { opacity: 1; }
+
+.cta {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 1.75rem;
+  background: rgb(12 10 9 / .35); color: var(--paper); border: 1px solid var(--paper); cursor: pointer;
+  font: 500 .75rem/1 var(--font-ui); letter-spacing: .24em; text-transform: uppercase;
+  transition: background-color .35s, color .35s;
+}
+.cta:hover { background: var(--paper); color: var(--ink); }
+
+/* Top bar */
+.hud-top {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .5rem;
+  padding: clamp(.5rem, 2vw, 1.5rem) clamp(.75rem, 2.5vw, 1.75rem);
+}
+.hud-chapter { margin: 0; font-size: .75rem; letter-spacing: .42em; text-transform: uppercase; text-align: center; }
+.hud-tools { justify-self: end; display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.hud-counter { margin: 0 .5rem 0 0; font-size: .6875rem; letter-spacing: .2em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.hud-back { position: absolute; z-index: 2; top: calc(clamp(.5rem, 2vw, 1.5rem) + 48px); left: clamp(.25rem, 2vw, 1rem); }
+
+/* Plates phase */
+.hud-plates { position: absolute; inset: 0; }
+.hud-plates > * { position: absolute; }
+.hud-arrow {
+  top: 50%; transform: translateY(-50%); width: 56px; height: 56px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid rgb(242 235 221 / .25); border-radius: 50%; color: var(--paper); cursor: pointer;
+  transition: background-color .3s, color .3s, opacity .3s;
+}
+.hud-arrow:hover:not(:disabled) { background: var(--paper); color: var(--ink); }
+.hud-arrow:disabled { opacity: .25; cursor: default; }
+.hud-arrow--prev { left: clamp(.5rem, 2.5vw, 1.75rem); }
+.hud-arrow--next { right: clamp(.5rem, 2.5vw, 1.75rem); }
+.hud-name {
+  left: clamp(.75rem, 2.5vw, 1.75rem); bottom: clamp(.75rem, 2.5vw, 1.75rem); margin: 0;
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  line-height: .85; letter-spacing: -.01em; font-size: clamp(2.5rem, 10vw, 8.5rem); max-width: 60vw; overflow-wrap: anywhere;
+}
+.hud-hour {
+  right: clamp(.75rem, 2.5vw, 1.75rem); bottom: clamp(.75rem, 2.5vw, 1.75rem); margin: 0; text-align: right;
+  display: flex; flex-direction: column; align-items: flex-end; gap: .35rem; font-variant-numeric: tabular-nums;
+}
+.hud-hour time { font-size: clamp(1.5rem, 4vw, 3rem); font-weight: 300; letter-spacing: .05em; line-height: 1; }
+.hud-hour span { font-size: .625rem; letter-spacing: .24em; text-transform: uppercase; color: var(--muted); }
+.hud-cta { left: 0; right: 0; bottom: clamp(.75rem, 2.5vw, 1.75rem); display: flex; flex-direction: column; align-items: center; gap: .6rem; pointer-events: none; }
+.hud-progress { margin: 0; font-size: .6875rem; letter-spacing: .3em; font-variant-numeric: tabular-nums; color: var(--muted); }
+
+/* Hotspots: thin ring markers with a numeral and a gentle pulse; they expand to a label on hover or focus */
+.hud-spots { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.hs { position: absolute; left: 0; top: 0; will-change: transform; }
+.hs__btn {
+  position: absolute; left: 0; top: 0; margin: -22px 0 0 -22px; height: 44px; padding: 0;
+  display: flex; align-items: center; background: none; border: 0; color: var(--paper); cursor: pointer;
+}
+.hs__ring {
+  position: relative; flex: none; width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--paper); background: rgb(12 10 9 / .25);
+  font-size: .6875rem; letter-spacing: .1em; font-variant-numeric: tabular-nums;
+}
+.hs__ring::after {
+  content: ''; position: absolute; inset: -1px; border-radius: 50%; border: 1px solid var(--paper);
+  animation: hs-pulse 2.8s ease-out infinite;
+}
+.hs__tick { display: none; }
+.hs__btn.is-read .hs__ring { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+.hs__btn.is-read .hs__ring::after { animation: none; opacity: 0; }
+.hs__btn.is-read .hs__n { display: none; }
+.hs__btn.is-read .hs__tick { display: block; }
+.hs__label {
+  max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0;
+  padding: 0; background: rgb(12 10 9 / .78);
+  font-size: .75rem; letter-spacing: .16em; text-transform: uppercase;
+  transition: max-width .5s cubic-bezier(.65, 0, .35, 1), opacity .4s, padding .4s;
+}
+.hs__label small { display: block; margin-top: .25rem; font-size: .625rem; letter-spacing: .12em; color: var(--muted); }
+.hs__btn:hover .hs__label, .hs__btn:focus-visible .hs__label { max-width: 18rem; opacity: 1; padding: .6rem 1rem; }
+@keyframes hs-pulse { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(1.7); opacity: 0; } }
+
+/* Dispatch panel: right side on desktop, bottom sheet on mobile */
+.panel {
+  position: absolute; top: 0; right: 0; bottom: 0; z-index: 3; width: min(28rem, 92vw);
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 4.5rem clamp(1.25rem, 3vw, 2rem) 2rem;
+  background: rgb(12 10 9 / .92); border-left: 1px solid rgb(242 235 221 / .14);
+  font-family: var(--font-editorial);
+}
+.panel__close {
+  position: absolute; top: .75rem; right: .75rem; display: inline-flex; align-items: center; gap: .6rem;
+  min-height: 44px; padding: 0 .75rem; background: none; border: 0; color: var(--paper); cursor: pointer; opacity: .75;
+  font: 500 .6875rem/1 var(--font-ui); letter-spacing: .2em; text-transform: uppercase;
+}
+.panel__close:hover { opacity: 1; }
+.panel__close span { color: var(--muted); }
+.panel .kicker { text-transform: uppercase; }
+.panel__title { margin: 0 0 1.25rem; font-weight: 500; font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.15; }
+.panel__more { display: inline-flex; align-items: center; min-height: 44px; margin-top: 1.5rem; font-family: var(--font-ui); font-size: .75rem; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.panel .pull { font-size: 1.25rem; }
+
+/* The Dial: bottom-centre */
+.dial {
+  position: absolute; left: 0; right: 0; bottom: clamp(.5rem, 2vw, 1.25rem); z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: .35rem; text-align: center; pointer-events: none;
+}
+.dial > * { pointer-events: auto; }
+.dial__line { margin: 0; min-height: 1.5em; font-family: var(--font-editorial); font-style: italic; font-size: 1.125rem; text-shadow: 0 1px 12px rgb(12 10 9 / .8); }
+.dial__face {
+  width: min(280px, 38vh, 80vw); aspect-ratio: 1; border-radius: 50%; cursor: grab; touch-action: none;
+  background: radial-gradient(rgb(12 10 9 / .6), rgb(12 10 9 / .2) 70%, transparent 72%);
+}
+.dial__face:active { cursor: grabbing; }
+.dial__face[aria-disabled='true'] { cursor: default; }
+.dial__face svg { width: 100%; height: 100%; overflow: visible; }
+.dial .ring { fill: none; stroke: var(--paper); stroke-width: .75; opacity: .6; }
+.dial .t { stroke: var(--paper); stroke-width: .6; opacity: .35; }
+.dial .t--hour { opacity: .6; stroke-width: .8; }
+.dial .t--major { opacity: .9; stroke-width: 1.1; }
+.dial text { fill: var(--paper); font: 400 9px var(--font-ui); letter-spacing: .1em; font-variant-numeric: tabular-nums; }
+.dial [data-hand] line { stroke: var(--accent); stroke-width: 1; }
+.dial [data-hand] circle { fill: var(--accent); }
+.dial .hub { fill: var(--paper); }
+.dial__read { margin: 0; font-size: 1.125rem; font-weight: 300; letter-spacing: .1em; font-variant-numeric: tabular-nums; }
+.dial__row { display: flex; gap: .5rem; align-items: center; }
+.dial__caption { margin: 0; min-height: 1.4em; font-family: var(--font-display); font-weight: 700; font-size: clamp(1.25rem, 3vw, 2rem); letter-spacing: .12em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+
+/* Index / Finale */
+.finale {
+  position: absolute; inset: 0; z-index: 30; overflow-y: auto;
+  display: flex; flex-direction: column; align-items: center; gap: 1rem;
+  padding: 4rem 1rem 2rem; background: rgb(12 10 9 / .97);
+}
+.finale__close { position: absolute; top: .75rem; right: .75rem; }
+.finale__kicker { margin: 0; font-size: .75rem; letter-spacing: .42em; text-transform: uppercase; color: var(--muted); }
+.finale__face { position: relative; width: min(60vh, 92vw, 560px); aspect-ratio: 1; flex: none; }
+.finale__face svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.finale .ring { fill: none; stroke: var(--paper); stroke-width: .25; opacity: .5; }
+.finale .t { stroke: var(--paper); stroke-width: .2; opacity: .4; }
+.finale .t--major { opacity: .9; stroke-width: .35; }
+.finale text { fill: var(--muted); font: 400 2.6px var(--font-ui); letter-spacing: .1em; }
+.finale__dots { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
+.finale__dots li { position: absolute; transform: translate(-50%, -50%); }
+.dot {
+  width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--ink); color: var(--paper); border: 1px solid var(--paper); cursor: pointer;
+  font: 500 .75rem/1 var(--font-ui); font-variant-numeric: tabular-nums; transition: background-color .3s, color .3s;
+}
+.dot:hover, .dot:focus-visible, .dot.is-solved { background: var(--paper); color: var(--ink); }
+.finale__card { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; min-height: 5.5rem; }
+.finale__card img, .finale__thumb { width: 60px; height: 75px; object-fit: cover; background: #15120F; }
+.finale__name { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; text-transform: uppercase; letter-spacing: .06em; }
+.finale__hour { margin: 0; color: var(--muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
+.finale__actions { display: flex; gap: .25rem; flex-wrap: wrap; }
+.finale__line { margin: .5rem 0 0; font-family: var(--font-editorial); font-style: italic; font-size: clamp(1.125rem, 3vw, 1.75rem); text-align: center; }
 
 /* Gateway */
 .gate {
@@ -75,9 +224,31 @@ body[data-mode='experience'] { overflow: hidden; overscroll-behavior: none; }
 .gate__enter:not(:disabled):hover { background: var(--paper); color: var(--ink); } /* colour inversion */
 .gate__enter-icon { display: inline-flex; }
 
-@media (max-width: 40rem) {
+@media (max-width: 48rem) {
   .gate__line--2 { margin-left: 8%; }
   .gate__line--4 { margin-left: 18%; }
   .gate__bottom { flex-direction: column; align-items: stretch; }
   .gate__enter { width: 100%; }
+
+  .hud-top { grid-template-columns: 1fr auto; }
+  .hud-chapter { grid-column: 1 / -1; grid-row: 2; text-align: left; }
+  .hud-name { bottom: 8.5rem; font-size: clamp(2.25rem, 14vw, 4.5rem); max-width: 70vw; }
+  .hud-hour { bottom: 8.5rem; }
+  .hud-arrow { top: auto; bottom: 1rem; transform: none; width: 48px; height: 48px; }
+  .hud-cta { bottom: 1rem; }
+  .hud-cta .cta { padding: 0 1rem; }
+
+  .panel {
+    top: auto; left: 0; right: 0; width: auto; max-height: 68vh;
+    padding: 3.5rem 1.25rem 2rem; border-left: 0; border-top: 1px solid rgb(242 235 221 / .18);
+  }
+  .dial__face { width: min(240px, 34vh, 70vw); }
+}
+
+@media (max-height: 40rem) {
+  .dial__read { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hs__ring::after { animation: none; opacity: 0; }
 }

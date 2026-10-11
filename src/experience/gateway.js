@@ -1,11 +1,12 @@
 // The front door: a typographic gateway that doubles as the preloader.
 // Flow: preload (000 to 100) -> Enter becomes available -> click unlocks audio,
-// fades the DOM layer out and the WebGL canvas in.
+// fades the DOM layer out and the WebGL canvas in. The stage (the hall of plates) takes over from there.
 import gsap from 'gsap';
-import * as THREE from 'three';
 import { Engine } from '../engine.js';
 import { audio } from '../audio.js';
-import { preload, loadFonts, loadImages, wait } from './preload.js';
+import { preload, loadFonts, wait } from './preload.js';
+import { loadArt } from './art.js';
+import { startStage } from './stage.js';
 import { prefersReducedMotion } from '../support.js';
 import { navigate } from '../nav.js';
 import DESTINATIONS from '../data/destinations.json';
@@ -26,19 +27,8 @@ const template = () => `
 <div class="exp">
   <canvas class="exp__canvas" aria-hidden="true"></canvas>
 
-  <!-- UI overlay (z-index 10). M1 holds only the essentials: wordmark, sound toggle, Reader Mode. -->
-  <section class="exp__ui" aria-label="WanderWords">
-    <div class="exp-bar">
-      <p class="exp-wordmark">WanderWords</p>
-      <div class="exp-tools">
-        <button class="link-btn" type="button" data-mute></button>
-        <a class="link-btn" href="/read" data-link>Reader mode</a>
-      </div>
-    </div>
-    <h1 class="sr-only" tabindex="-1" data-uititle>WanderWords. Every place has one hour.</h1>
-    <p class="exp-note"><mark class="ph">[[M1]] The canvas is live. The gallery of plates arrives in M2.</mark></p>
-    <span></span>
-  </section>
+  <!-- UI overlay (z-index 10), filled in by the stage -->
+  <section class="exp__ui" aria-label="WanderWords"></section>
 
   <!-- The gateway (z-index 20) -->
   <section class="gate" aria-label="Welcome">
@@ -68,21 +58,6 @@ const template = () => `
   </section>
 </div>`;
 
-// A faint, slowly turning ring: proves the canvas is live and hints at the dial to come
-function addDialRing(engine, reduced) {
-  const points = [];
-  for (let i = 0; i <= 128; i++) {
-    const a = (i / 128) * Math.PI * 2;
-    points.push(new THREE.Vector3(Math.cos(a) * 1.6, Math.sin(a) * 1.6, 0));
-  }
-  const ring = new THREE.LineLoop(
-    new THREE.BufferGeometry().setFromPoints(points),
-    new THREE.LineBasicMaterial({ color: 0xf2ebdd, transparent: true, opacity: 0.25 }),
-  );
-  engine.scene.add(ring);
-  if (!reduced) engine.onUpdate((dt) => { ring.rotation.z += dt * 0.05; });
-}
-
 // The Enter button is gently pulled toward the cursor when it is near
 function magnet(button, reduced) {
   if (reduced || !window.matchMedia('(hover: hover)').matches) return () => {};
@@ -103,31 +78,18 @@ export function mountExperience(root) {
   root.innerHTML = template();
   const $ = (s) => root.querySelector(s);
   const el = {
-    gate: $('.gate'), canvas: $('.exp__canvas'), ui: $('.exp__ui'), uiTitle: $('[data-uititle]'),
+    exp: $('.exp'), gate: $('.gate'), canvas: $('.exp__canvas'), ui: $('.exp__ui'),
     count: $('.gate__count'), enter: $('.gate__enter'), label: $('[data-slot]'), status: $('[data-status]'),
-    mute: $('[data-mute]'),
     parts: root.querySelectorAll('.gate__line, .gate__hour'),
     edges: root.querySelectorAll('.gate__top > *, .gate__bottom > *'),
   };
   const reduced = prefersReducedMotion();
-  let engine = null;
+  let engine = null, stage = null;
   let ready = false, entered = false, dead = false;
   const cleanups = [];
 
   // Canvas and UI overlay start hidden; the gateway covers everything
   gsap.set([el.canvas, el.ui], { autoAlpha: 0 });
-
-  // Sound toggle: label and state follow the audio bus
-  const syncMute = () => {
-    el.mute.textContent = audio.muted ? 'Sound off' : 'Sound on';
-    el.mute.setAttribute('aria-pressed', String(!audio.muted));
-  };
-  syncMute();
-  el.mute.addEventListener('click', () => {
-    audio.unlock();
-    audio.setMuted(!audio.muted);
-    syncMute();
-  });
 
   // ---- Preloader: counter 000 -> 100 in the gateway and in the button slot ----
   const shown = { v: 0 };
@@ -167,23 +129,28 @@ export function mountExperience(root) {
     gsap.from(el.edges, { autoAlpha: 0, duration: 1, delay: 0.5, ease: 'power2.out' });
   }
 
+  // Chapter I is loaded fully now; the other nine load quietly after Enter
   const tasks = [
     { weight: 3, optional: true, run: (report) => loadFonts(report) },
-    { weight: 4, optional: true, run: (report) => loadImages([chapter1.photo.src, chapter1.photo.depth], report) },
+    { weight: 4, optional: true, run: async (report) => { const art = await loadArt(chapter1); report(1); return art; } },
     {
       weight: 3,
       run: async (report) => {
         engine = new Engine(el.canvas); // throws if WebGL fails
+        engine.onLost = () => navigate('/read', true); // lost context: Reader Mode
         if (dead) { engine.dispose(); engine = null; return; }
-        addDialRing(engine, reduced);
-        engine.renderOnce(); // compile now, so the reveal does not stutter
         report(1);
       },
     },
   ];
 
   Promise.all([preload(tasks, (p) => setProgress(Math.min(p, 0.99))), wait(MIN_LOAD_MS)])
-    .then(() => { if (!dead) setProgress(1); })
+    .then(([results]) => {
+      if (dead || !engine) return;
+      stage = startStage({ engine, ui: el.ui, rootEl: el.exp, destinations: DESTINATIONS, art0: results[1], reduced });
+      engine.renderOnce(); // compile everything now, so the reveal does not stutter
+      setProgress(1);
+    })
     .catch((err) => {
       console.error('Immersive mode failed, opening Reader Mode:', err);
       if (!dead) navigate('/read', true);
@@ -193,21 +160,22 @@ export function mountExperience(root) {
 
   // ---- Enter: unlock audio, fade the DOM out, fade the canvas in ----
   function enter() {
-    if (!ready || entered || dead) return;
+    if (!ready || entered || dead || !stage) return;
     entered = true;
     el.enter.disabled = true;
     el.gate.style.pointerEvents = 'none'; // the old layer can no longer be clicked
 
     audio.unlock(); // must run inside this click: browsers only allow audio after a gesture
     audio.chime();
-    syncMute();
     engine.start();
+    stage.begin();
 
     const tl = gsap.timeline({
       onComplete: () => {
         el.gate.setAttribute('inert', '');
         gsap.set(el.gate, { display: 'none' });
-        el.uiTitle.focus({ preventScroll: true });
+        const title = root.querySelector('[data-uititle]');
+        if (title) title.focus({ preventScroll: true });
       },
     });
     if (reduced) {
@@ -229,6 +197,7 @@ export function mountExperience(root) {
       dead = true;
       cleanups.forEach((fn) => fn());
       gsap.killTweensOf([el.gate, el.canvas, el.ui, el.count, el.enter, shown, ...el.parts, ...el.edges]);
+      if (stage) stage.dispose();
       if (engine) engine.dispose();
       root.innerHTML = '';
     },
