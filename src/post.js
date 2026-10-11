@@ -82,7 +82,7 @@ export class PostFX {
     this.renderer = renderer;
     const size = renderer.getDrawingBufferSize(new THREE.Vector2());
     // MSAA render target keeps edges clean now that the canvas no longer antialiases itself
-    const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4 });
+    const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 2 });
     this.composer = new EffectComposer(renderer, target);
 
     this.renderPass = new RenderPass(new THREE.Scene(), new THREE.PerspectiveCamera());
@@ -100,8 +100,10 @@ export class PostFX {
   }
 
   setSize(w, h) {
-    this.composer.setPixelRatio(this.renderer.getPixelRatio());
+    const pr = this.renderer.getPixelRatio();
+    this.composer.setPixelRatio(pr);
     this.composer.setSize(w, h);
+    this.bloom.setSize((w * pr) / 2, (h * pr) / 2); // bloom is soft, so it can run at half resolution
   }
 
   render(scene, camera, dt, t) {

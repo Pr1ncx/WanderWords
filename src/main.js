@@ -16,6 +16,7 @@ const $$ = (s) => document.querySelectorAll(s);
 // phase: loader | gate | intro | ride | title | moving | explore | gift
 const S = { phase: 'loader', current: 0, target: 0, busy: false, arriving: false, soundOn: false, cc: false, ccText: '', exhibit: -2, overlay: null, lb: 0 };
 let engine, room, lenis, windowMedia, introTl, rideTl;
+let pre = null; // { i, room }: the next room, built ahead while the loader or the tunnel covers the screen
 
 // ---------- Missing media: swap in a painted placeholder ----------
 document.addEventListener('error', (e) => {
@@ -103,6 +104,7 @@ async function init() {
 
   engine = new Engine($('#webgl'));
   engine.post.grade('#6B3A24', 0.3, 0);
+  prebuild(0); // chapter I's room is built now, behind the loader
   gsap.ticker.add(() => engine.tick());
   const vid = $('#trainVideo');
   if (vid) {
@@ -193,7 +195,7 @@ function openGate() {
 function startJourney() {
   $('#start').disabled = true;
   sfx();
-  gsap.to('#intro', { autoAlpha: 0, scale: 1.08, filter: 'blur(14px)', duration: 1.2, ease: 'power3.in' });
+  gsap.to('#intro', { autoAlpha: 0, scale: 1.04, duration: 1, ease: 'power2.inOut' }); // no blur filter: it is very costly full-screen
   runIntro();
 }
 
@@ -252,6 +254,7 @@ function rideTo(i, fromIntro = false) {
         hideChapterUI();
         gsap.set('#gift', { autoAlpha: 0 });
         disposeRoom();
+        prebuild(i); // built while the tunnel is opaque, so the train video never stutters
         gsap.to('#trainContainer', { autoAlpha: 1, duration: 0.4 });
       })
       .to('#tunnel', { autoAlpha: 0, duration: 0.8, ease: 'power2.out' }, '+=0.3');
@@ -302,7 +305,7 @@ function arrive(i) {
 function openRoom(i) {
   disposeRoom();
   S.current = i;
-  room = new Room(CHAPTERS[i], engine.env);
+  room = takeRoom(i);
   engine.setView(room);
   engine.post.grade(CHAPTERS[i].room.trim, 0.4);
   room.play();
@@ -311,6 +314,23 @@ function openRoom(i) {
 
 function disposeRoom() {
   if (room) { room.dispose(); room = null; }
+  if (engine) engine.setView(null); // never keep rendering a disposed scene behind the video
+}
+
+// Build a room (textures, geometry, shader compile) ahead of time, while something covers the screen
+function prebuild(i) {
+  if (pre && pre.i === i) return;
+  if (pre) pre.room.dispose();
+  const r = new Room(CHAPTERS[i], engine.env);
+  engine.renderer.compile(r.scene, r.camera);
+  pre = { i, room: r };
+}
+
+function takeRoom(i) {
+  if (!pre || pre.i !== i) prebuild(i);
+  const r = pre.room;
+  pre = null;
+  return r;
 }
 
 // ---------- 4. Chapter title card ----------
@@ -405,13 +425,14 @@ function openOverlay(sel) {
   S.overlay = sel;
   lenis.stop();
   if (room) room.pause();
-  gsap.fromTo(sel, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5 });
+  gsap.fromTo(sel, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, onComplete: () => { if (S.overlay === sel) engine.paused = true; } }); // stop rendering what is hidden
 }
 
 function closeOverlay(instant) {
   if (!S.overlay) return;
   const sel = S.overlay;
   S.overlay = null;
+  engine.paused = false;
   $(sel).querySelectorAll('video').forEach((v) => v.pause());
   gsap.to(sel, { autoAlpha: 0, duration: instant === true ? 0 : 0.4 });
   if (room) room.play();
@@ -426,7 +447,8 @@ function toggleMenu(force) {
   if (open === isOpen) return;
   menu.classList.toggle('is-open', open);
   $('#menuBtn').classList.toggle('is-active', open);
-  gsap.to(menu, { autoAlpha: open ? 1 : 0, duration: 0.45 });
+  if (!open) engine.paused = false;
+  gsap.to(menu, { autoAlpha: open ? 1 : 0, duration: 0.45, onComplete: () => { if (open && menu.classList.contains('is-open')) engine.paused = true; } });
   if (open) lenis.stop();
   else if (S.phase === 'explore' && !S.overlay) lenis.start();
 }

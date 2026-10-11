@@ -98,10 +98,10 @@ export class Room {
     // Polished wooden plank floor
     const planks = TX.planks(room.floor);
     planks.repeat.set(3, 4.5);
-    const wear = TX.grime(1024, 6); // uneven oil and wear, so reflections break up naturally
+    const wear = TX.grime(512, 6); // uneven oil and wear, so reflections break up naturally
     wear.repeat.set(3, 4.5);
     const floor = this.add(new THREE.PlaneGeometry(12, 18),
-      new THREE.MeshPhysicalMaterial({ map: planks, roughnessMap: wear, roughness: 0.75, clearcoat: 0.35, clearcoatRoughness: 0.28 }), 0, 0, -3);
+      new THREE.MeshStandardMaterial({ map: planks, roughnessMap: wear, roughness: 0.6 }), 0, 0, -3);
     floor.rotation.x = -Math.PI / 2;
 
     // Textured plaster walls
@@ -160,9 +160,6 @@ export class Room {
     this.pickables.push(pic);
     const bar = this.add(new THREE.CylinderGeometry(0.035, 0.035, w * 0.6, 10), this.brass, 0, h / 2 + 0.28, 0.16, g);
     bar.rotation.z = Math.PI / 2;
-    const light = new THREE.PointLight('#ffd9a0', 3, 4, 1.5);
-    light.position.set(0, h / 2 + 0.1, 0.7);
-    g.add(light);
   }
 
   // Exhibit 3: craft or food photo on a wooden easel
@@ -237,7 +234,7 @@ export class Room {
     for (const x of [-3.4, 3.4]) {
       this.add(new THREE.CylinderGeometry(0.35, 0.28, 0.7, 16), this.std({ color: '#9C5A3C', roughness: 0.7 }), x, 0.35, -11.2);
       for (let k = 0; k < 5; k++) {
-        this.add(new THREE.IcosahedronGeometry(0.35, 3), this.std({ color: '#3E6B3A', roughness: 0.7 }),
+        this.add(new THREE.IcosahedronGeometry(0.35, 2), this.std({ color: '#3E6B3A', roughness: 0.7 }),
           x + Math.cos(k * 1.3) * 0.2, 0.95 + k * 0.18, -11.2 + Math.sin(k * 1.3) * 0.2);
       }
     }
