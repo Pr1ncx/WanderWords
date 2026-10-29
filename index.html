@@ -6,7 +6,7 @@
   <title>WANDERWORDS · Ten stops. Ten stories. One India.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Sometype+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;700&family=Shrikhand&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Work+Sans:wght@400;500;600;700&family=Sometype+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;700&family=Shrikhand&display=swap" rel="stylesheet" />
 </head>
 <body class="is-locked">
   <!-- Layer stack: #trainContainer (5) < #destination (10) < menu and controls -->
@@ -16,6 +16,12 @@
     <span class="miu-badge__arrow">↗</span>
     <span id="badgeNum" class="miu-badge__text">1/10</span>
   </div>
+
+  <button id="authBtn" class="miu-pass-btn ctrl" aria-label="Passenger Pass">
+    <span class="pass-dot"></span>
+    <span id="authBtnText" class="pass-text-full">PASSENGER LOG</span>
+    <span class="pass-text-short">PASS</span>
+  </button>
 
   <button id="menuBtn" class="miu-icon-btn ctrl" aria-label="Open the index of stops">
     <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -44,22 +50,8 @@
   </div>
   <p id="cc" class="cc"></p>
 
-  <!-- 1. Loader -->
-  <div id="loader">
-    <div class="mosaic mosaic--top"></div>
-    <div class="loader__center">
-      <p class="loader__word">loading</p>
-      <p class="loader__pct">0%</p>
-    </div>
-    <div class="loader__prompt">
-      <p class="micro">Activate sound for a better experience</p>
-      <div class="loader__actions">
-        <button class="btn" data-sound="on"><span>Sound on</span></button>
-        <button class="btn btn--ghost" data-sound="off"><span>Continue muted</span></button>
-      </div>
-    </div>
-    <div class="mosaic mosaic--bottom"></div>
-  </div>
+  <!-- 1. Greeting Preloader (React + Framer Motion) -->
+  <div id="preloader-root"></div>
 
   <!-- 2. Cover gate -->
   <section id="intro">
@@ -68,7 +60,10 @@
       <p class="eyebrow">WanderWords · Issue 01</p>
       <h1 class="intro__title"><em>The</em> INDIAN JOURNEY <em>begins</em></h1>
       <p class="micro">Ten stops. Ten stories. One India.</p>
-      <button class="btn btn--magnetic" id="start"><span>Start now</span></button>
+      <div class="intro__actions" style="display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap;">
+        <button class="btn btn--magnetic" id="start"><span>Start now</span></button>
+        <button class="btn btn--ghost btn--magnetic" id="introAuthBtn"><span>Passenger Sign In</span></button>
+      </div>
     </div>
     <div class="mosaic mosaic--bottom"></div>
   </section>
@@ -103,6 +98,9 @@
     </div>
     <div class="mosaic mosaic--bottom"></div>
   </section>
+
+  <!-- 5. Passenger Auth Modal (React + Framer Motion) -->
+  <div id="auth-root"></div>
 
   <!-- Print finish: one static paper layer -->
   <div class="paper" aria-hidden="true"></div>

@@ -17,6 +17,9 @@ import { splitChars, magnetic, drawPostcard } from './fx.js';
 import { TrainCanvas } from './train/TrainCanvas.js';
 import { DestinationEditorial } from './destination/DestinationEditorial.js';
 import { createJourney } from './journey.js';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { GreetingPreloader, TravelerAuthModal } from './components/ui';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
@@ -84,6 +87,9 @@ let lastPhase = '';
 journey.on('phase', (p) => {
   if (p === 'finale') showGift();
   else if (lastPhase === 'finale') hideGift();
+  if (p === 'entering' || p === 'destination') {
+    gsap.set('#intro', { autoAlpha: 0 });
+  }
   lastPhase = p;
 });
 journey.on('stop', (i) => {
@@ -92,40 +98,104 @@ journey.on('stop', (i) => {
   sfx();
 });
 
-// ---------- 1. Loader ----------
-async function init() {
-  const pct = $('.loader__pct'), counter = { v: 0 };
-  const draw = () => (pct.textContent = `${Math.round(counter.v)}%`);
-  const letters = splitChars($('.loader__word'), 'loading', false);
-  gsap.to(letters, { yPercent: -14, duration: 0.5, ease: 'sine.inOut', stagger: { each: 0.08, repeat: -1, yoyo: true } });
-  const creep = gsap.to(counter, { v: 85, duration: 3, ease: 'power2.out', onUpdate: draw });
+// ---------- Passenger Auth Modal (React) ----------
+let authRoot = null;
+const authState = {
+  isOpen: false,
+  initialMode: 'signup',
+};
 
+function renderAuthModal() {
+  const container = document.getElementById('auth-root');
+  if (!container) return;
+  if (!authRoot) {
+    authRoot = createRoot(container);
+  }
+  authRoot.render(
+    React.createElement(TravelerAuthModal, {
+      isOpen: authState.isOpen,
+      initialMode: authState.initialMode,
+      onClose: () => {
+        authState.isOpen = false;
+        renderAuthModal();
+      },
+      onSuccess: (passenger) => {
+        updatePassengerUI(passenger);
+      },
+      onStartJourney: () => {
+        authState.isOpen = false;
+        renderAuthModal();
+        if (journey.phase === 'cover') {
+          startJourney();
+        }
+      },
+    })
+  );
+}
+
+function openAuth(mode = 'signup') {
+  authState.isOpen = true;
+  authState.initialMode = mode;
+  renderAuthModal();
+}
+
+function updatePassengerUI(passenger) {
+  const btn = $('#authBtn');
+  const btnText = $('#authBtnText');
+  const menuText = $('#menuAuthText');
+  if (!btn) return;
+  if (passenger && passenger.name) {
+    btn.classList.add('is-signed-in');
+    const firstName = passenger.name.split(' ')[0].toUpperCase();
+    if (btnText) btnText.textContent = `PASS: ${firstName} ↗`;
+    if (menuText) menuText.textContent = `Passenger: ${passenger.name} (${passenger.travelClass}) ↗`;
+  } else {
+    btn.classList.remove('is-signed-in');
+    if (btnText) btnText.textContent = 'PASSENGER LOG';
+    if (menuText) menuText.textContent = 'Passenger Boarding Pass ↗';
+  }
+}
+
+// ---------- 1. Greeting Preloader (React) ----------
+async function init() {
   await Promise.all([
-    document.fonts.load('150px Shrikhand'),
     document.fonts.load('700 40px "Playfair Display"'),
     document.fonts.load('italic 34px "Playfair Display"'),
     document.fonts.load('500 22px Inter'),
     document.fonts.load('700 22px Inter'),
-    new Promise((r) => setTimeout(r, 1500)),
+    document.fonts.load('600 24px Caveat'),
   ]);
 
   gsap.ticker.lagSmoothing(0);
   train.prepare();
   setupUI();
-  creep.kill();
-  gsap.to(counter, {
-    v: 100, duration: 0.6, onUpdate: draw,
-    onComplete: () => gsap.timeline()
-      .to('.loader__center', { autoAlpha: 0, y: -30, duration: 0.8, ease: 'power3.in' })
-      .fromTo('.loader__prompt', { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'expo.out' }),
-  });
+  renderAuthModal();
+
+  const preloaderContainer = document.getElementById('preloader-root');
+  if (preloaderContainer) {
+    const root = createRoot(preloaderContainer);
+    root.render(
+      React.createElement(GreetingPreloader, {
+        fullPage: true,
+        intervalMs: 650,
+        onFinish: () => {
+          openGate();
+        },
+      })
+    );
+  } else {
+    openGate();
+  }
 }
 
 function setupUI() {
   $$('.btn--magnetic').forEach((b) => magnetic(b));
 
-  $('[data-sound="on"]').onclick = () => { setSound(true); openGate(); };
-  $('[data-sound="off"]').onclick = () => { setSound(false); openGate(); };
+  const soundOnBtn = $('[data-sound="on"]');
+  if (soundOnBtn) soundOnBtn.onclick = () => { setSound(true); openGate(); };
+  const soundOffBtn = $('[data-sound="off"]');
+  if (soundOffBtn) soundOffBtn.onclick = () => { setSound(false); openGate(); };
+
   $('#start').onclick = startJourney;
   $('#skipBtn').onclick = () => journey.skip();
   $('#soundBtn').onclick = () => setSound(!S.soundOn);
@@ -140,9 +210,30 @@ function setupUI() {
   };
   $('#restart').onclick = () => journey.restart();
 
+  // Auth buttons
+  const authBtn = $('#authBtn');
+  if (authBtn) authBtn.onclick = () => openAuth('signin');
+  const introAuthBtn = $('#introAuthBtn');
+  if (introAuthBtn) introAuthBtn.onclick = () => openAuth('signin');
+  const menuAuthBtn = $('#menuAuthBtn');
+  if (menuAuthBtn) menuAuthBtn.onclick = () => { toggleMenu(false); openAuth('signin'); };
+
+  // Listen for passenger updates
+  window.addEventListener('wanderwords:passenger_updated', (e) => {
+    updatePassengerUI(e.detail);
+  });
+
+  // Check initial localStorage
+  try {
+    const saved = localStorage.getItem('wanderwords_passenger');
+    if (saved) updatePassengerUI(JSON.parse(saved));
+  } catch {}
+
   // Index: every stop is one click away
   $('#menu .menu__body').innerHTML = renderMenu(CHAPTERS, CREDITS);
   $$('[data-go]').forEach((b) => (b.onclick = () => { toggleMenu(false); journey.goToStop(+b.dataset.go); }));
+  const renderedMenuAuthBtn = $('#menuAuthBtn');
+  if (renderedMenuAuthBtn) renderedMenuAuthBtn.onclick = () => { toggleMenu(false); openAuth('signin'); };
 
   addEventListener('keydown', (e) => {
     if (e.key === 'Escape') toggleMenu(false);
@@ -151,13 +242,16 @@ function setupUI() {
 
 // ---------- 2. Cover gate ----------
 function openGate() {
-  gsap.to('#loader', { autoAlpha: 0, duration: 1 });
-  gsap.to('.ctrl', { autoAlpha: 1, duration: 0.8, delay: 0.6, stagger: 0.08 });
+  gsap.to('.ctrl', { autoAlpha: 1, duration: 0.8, delay: 0.1, stagger: 0.08 });
   journey.openGate();
 
   // A link straight to a destination (/stop/goa) skips the cover and the train
   const deep = journey.stopFromUrl();
-  if (deep >= 0) { journey.goToStop(deep); return; }
+  if (deep >= 0) {
+    gsap.set('#intro', { autoAlpha: 0 });
+    journey.goToStop(deep);
+    return;
+  }
 
   gsap.set('#intro', { autoAlpha: 1 });
   gsap.timeline({ delay: 0.3 })

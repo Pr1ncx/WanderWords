@@ -13,6 +13,8 @@
 // A destination can therefore be opened straight from a link, and the browser Back button
 // takes you from the page back to the train.
 
+import { playTrainWipe } from './train/TrainWipeTransition.js';
+
 const GRAPH = {
   loading: ['gate'],
   gate: ['intro', 'entering'],
@@ -20,7 +22,7 @@ const GRAPH = {
   riding: ['entering', 'finale'],
   entering: ['destination'],
   destination: ['leaving'],
-  leaving: ['riding', 'finale'],
+  leaving: ['riding', 'finale', 'destination'],
   finale: ['riding', 'entering'],
 };
 
@@ -52,7 +54,9 @@ export function createJourney({ chapters, train, editorial }) {
   // ---- URLs ----
   const pathFor = (i) => (i < 0 ? '/' : `/stop/${chapters[i].id}`);
   function stopFromUrl() {
-    const m = location.pathname.match(/^\/stop\/([a-z0-9-]+)\/?$/);
+    const fromPath = location.pathname.match(/^\/stop\/([a-z0-9-]+)\/?$/);
+    const fromHash = location.hash.match(/^#\/?stop\/([a-z0-9-]+)\/?$/);
+    const m = fromPath || fromHash;
     return m ? chapters.findIndex((c) => c.id === m[1]) : -1;
   }
   function setUrl(i) {
@@ -76,26 +80,38 @@ export function createJourney({ chapters, train, editorial }) {
     settle();
   }
 
-  // Out of a destination, back onto the train, and on to the next stop (or the finale).
+  // Out of a destination and into the next stop using the 3D Indian train speed-wipe transition
   async function leaveStop() {
     if (phase !== 'destination' || busy()) return;
-    set('leaving');
-    await train.resume(); // the train wakes up underneath the page, still out of focus
-    await editorial.close(); // the page fades out
-    setUrl(-1);
-    await train.pullBack(chapters[current]); // the train comes back into focus
     const next = current + 1;
     if (next >= chapters.length) {
-      set('finale');
+      locked = true;
+      set('leaving');
+      await playTrainWipe({
+        onMidpoint: async () => {
+          await editorial.close();
+          set('finale');
+        },
+      });
+      locked = false;
       settle();
       return;
     }
-    target = next;
-    skipFlag = false;
-    set('riding');
+
+    locked = true;
+    const prevCurrent = current;
+    current = next;
+    emit('stop', next);
+
+    await playTrainWipe({
+      onMidpoint: async () => {
+        setUrl(next);
+        await editorial.open(chapters[next], next);
+      },
+    });
+
+    locked = false;
     settle();
-    await train.ride(chapters[next]); // ends after a few seconds, or when skipped
-    await enterStop(target, 'window');
   }
 
   // From the cover: the intro ride, then the first stop
@@ -132,14 +148,20 @@ export function createJourney({ chapters, train, editorial }) {
     if (phase === 'destination') return swapStop(i);
   }
 
-  // One destination page replaced by another, without going back to the train
+  // One destination page replaced by another, using the 3D train speed-wipe
   async function swapStop(i) {
+    if (busy() || i === current) return;
     locked = true;
     current = i;
     emit('stop', i);
-    await editorial.close();
-    setUrl(i);
-    await editorial.open(chapters[i], i);
+
+    await playTrainWipe({
+      onMidpoint: async () => {
+        setUrl(i);
+        await editorial.open(chapters[i], i);
+      },
+    });
+
     locked = false;
     settle();
   }

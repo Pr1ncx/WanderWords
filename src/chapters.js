@@ -13,7 +13,7 @@ const path = (id, file) => `/media/${id}/${file}`;
 function chapter(id, name, title, tagline, look, exhibits, article) {
   return {
     id, name, title, tagline, ...look,
-    coverImg: path(id, 'cover.webp'),
+    coverImg: id === 'srinagar' ? path(id, 'hero-frames/frame_0001.webp') : path(id, 'cover.webp'),
     exhibits: exhibits.map(([t, text, caption], k) => ({
       type: k === 0 ? 'video' : 'photo',
       src: path(id, k === 0 ? 'hero.mp4' : `0${k}.webp`),

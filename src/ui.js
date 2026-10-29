@@ -18,7 +18,15 @@ export function renderMenu(chapters, credits) {
     </button>`).join('');
   const lines = chapters.flatMap((c) => (credits[c.id] || []).map((l) => `<li><b>${c.name}</b> ${esc(l)}</li>`));
   return `
-    <div class="menu-head"><p class="eyebrow">WanderWords \u00b7 Issue 01</p><h2>The Journey</h2></div>
+    <div class="menu-head" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;">
+      <div>
+        <p class="eyebrow">WanderWords \u00b7 Issue 01</p>
+        <h2 style="margin: .4rem 0 0;">The Journey</h2>
+      </div>
+      <button id="menuAuthBtn" class="btn btn--ghost" style="margin-top: 0; padding: .75rem 1.6rem; display: inline-flex; align-items: center; gap: 8px;">
+        <span id="menuAuthText">Passenger Boarding Pass ↗</span>
+      </button>
+    </div>
     <div class="menu-grid">${cards}</div>
     <section class="menu-credits">
       <h3>Credits</h3>

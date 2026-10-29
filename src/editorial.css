@@ -8,6 +8,67 @@
    - Measure:   body text stays between 50 and 70 characters per line.
    - Colour:    ink on cream. The stop's accent is used for hairlines and washes only, never for small text. */
 
+/* Gehry Getty Typography: Sharp Grotesk Black */
+@font-face {
+  font-display: swap;
+  font-family: 'SharpGroteskBlack';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/SharpGrotesk/SharpGroteskBlack-15.woff2') format('woff2');
+}
+@font-face {
+  font-display: swap;
+  font-family: 'SharpGroteskBlack';
+  font-style: normal;
+  font-weight: 600;
+  src: url('/fonts/SharpGrotesk/SharpGroteskBlack-20.woff2') format('woff2');
+}
+@font-face {
+  font-display: swap;
+  font-family: 'Sharp Grotesk';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/SharpGrotesk/SharpGroteskBlack-15.woff2') format('woff2');
+}
+@font-face {
+  font-display: swap;
+  font-family: 'Sharp Grotesk';
+  font-style: normal;
+  font-weight: 600;
+  src: url('/fonts/SharpGrotesk/SharpGroteskBlack-20.woff2') format('woff2');
+}
+@font-face {
+  font-display: swap;
+  font-family: 'Sharp Grotesk';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/fonts/SharpGrotesk/SharpGroteskBlack-20.woff2') format('woff2');
+}
+@font-face {
+  font-display: swap;
+  font-family: 'Sharp Grotesk';
+  font-style: normal;
+  font-weight: 800;
+  src: url('/fonts/SharpGrotesk/SharpGroteskBlack-20.woff2') format('woff2');
+}
+
+/* Gehry Getty Typography: Reckless */
+@font-face {
+  font-display: swap;
+  font-family: 'Reckless';
+  font-style: normal;
+  font-weight: 300;
+  src: url('/fonts/Reckless/Reckless-Light.woff2') format('woff2');
+}
+@font-face {
+  font-display: swap;
+  font-family: 'Reckless';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/Reckless/Reckless-Regular.woff2') format('woff2');
+}
+
+.destination::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .destination {
   --u: 4px;
   --ed-ink: #0E0C0A;
@@ -17,6 +78,7 @@
   --ed-wash: #EFE8DC;
   --ed-serif: 'Playfair Display', Georgia, serif;
   --ed-sans: 'Inter', system-ui, sans-serif;
+  --ed-hand: 'Caveat', 'Kalam', cursive, var(--ed-serif);
   --gutter: clamp(16px, 2.2vw, 36px);
   --margin: clamp(20px, 6vw, 112px);
   --stop-accent: #B5523B;
@@ -24,7 +86,9 @@
   --a-img: 1 / 6; --a-txt: 7 / 12;
   --b-img: 7 / 13; --b-txt: 1 / 6;
 
-  position: fixed; inset: 0; z-index: 10; overflow-y: auto; overscroll-behavior: contain;
+  position: fixed; inset: 0; z-index: 10; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   visibility: hidden; opacity: 0;
   background: var(--ed-paper); color: var(--ed-ink);
   font-family: var(--ed-sans); font-size: 17px; line-height: 28px;
@@ -36,23 +100,83 @@
 .ed-progress__bar { display: block; height: 100%; background: var(--stop-accent); transform: scaleX(0); transform-origin: 0 50%; }
 .ed { position: relative; }
 
+/* Codegrid Video #19: Interactive Atmospheric Ambient Gradient Mesh */
+.ed-ambient-mesh {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.05;
+  background: radial-gradient(circle 850px at var(--mesh-x, 50%) var(--mesh-y, 35%), var(--mesh-accent, var(--stop-accent)) 0%, transparent 72%);
+  mix-blend-mode: multiply;
+  transition: opacity 0.6s ease;
+}
+
 /* The 12-column grid. Every section sits on it. */
 .ed-grid {
   display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
   max-width: 1680px; margin: 0 auto; padding-inline: var(--margin);
 }
-.ed-sec { padding-block: calc(var(--u) * 32); }
+/* Golden Canon & Van de Graaf Pacing: Asymmetric section padding (top: 24u, bottom: 38u) */
+.ed-sec { padding-top: calc(var(--u) * 24); padding-bottom: calc(var(--u) * 38); }
+
+/* Modern Typography Wrapping: Prevent orphan words and balance titles (BONT Video 6 & 7) */
+.ed-hero__title, .ed-h, .ed-h3, .ed-spread__text h3, .ed-next__name, .ed-fest__title {
+  text-wrap: balance;
+}
+.ed-body, .ed-lede, .ed-pull, .ed-fest__desc {
+  text-wrap: pretty;
+  hanging-punctuation: first last;
+}
 
 /* Micro type: small, tracked, tabular */
-.ed-no, .ed-meta, .ed-hero__eyebrow, .ed-hero__cue, .ed-next__btn span, .ed-fact dt {
+.ed-no, .ed-meta, .ed-hero__eyebrow, .ed-hero__cue, .ed-next__btn > span, .ed-next__label, .ed-fact dt, .ed-fest__num, .ed-fest__season {
   font-family: var(--ed-sans); font-weight: 500; font-size: 12px; line-height: 20px;
   letter-spacing: .22em; text-transform: uppercase; font-variant-numeric: tabular-nums;
 }
 
+/* Fluid Character Split */
+.ed-char-segment { display: inline-block; overflow: hidden; vertical-align: top; }
+.ed-char-glyph { display: inline-block; will-change: transform, opacity; }
+.ed-char-space { display: inline-block; width: 0.28em; }
+
 /* Hero: full bleed image, the name set at macro size on the grid */
 .ed-hero { position: relative; height: 100vh; min-height: 600px; overflow: hidden; color: #fff; background: var(--ed-ink); }
+.ed-hero__frame { position: absolute; inset: 0; overflow: hidden; will-change: transform, border-radius; }
 .ed-hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
 .ed-hero__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, .32), rgba(0, 0, 0, 0) 38%, rgba(0, 0, 0, .62)); }
+
+.ed-hero__bg-ambient {
+  position: absolute;
+  inset: -30px;
+  width: calc(100% + 60px);
+  height: calc(100% + 60px);
+  object-fit: cover;
+  object-position: center;
+  filter: blur(36px) brightness(0.6) saturate(1.25);
+  transform: scale(1.08);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ed-hero--show-full .ed-hero__img--full {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  z-index: 2;
+  filter: drop-shadow(0 25px 60px rgba(0, 0, 0, 0.7));
+}
+
+.ed-hero--show-full .ed-hero__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.05) 40%, rgba(0, 0, 0, 0.65) 100%);
+  pointer-events: none;
+  z-index: 3;
+}
 .ed-hero__grid {
   position: absolute; left: 0; right: 0; bottom: calc(var(--u) * 20);
   display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
@@ -65,77 +189,375 @@
 .ed-hero__cue { position: absolute; right: var(--margin); bottom: calc(var(--u) * 10); writing-mode: vertical-rl; }
 
 /* Introduction: metadata, lede with a drop cap, and a pull quote that crosses the gutter */
-.ed-intro { padding-block: calc(var(--u) * 40) calc(var(--u) * 16); row-gap: calc(var(--u) * 28); }
-.ed-meta { grid-column: 1 / 4; align-self: start; color: var(--ed-muted); }
-.ed-meta em { font-style: normal; }
-.ed-lede { grid-column: 4 / 12; font-family: var(--ed-serif); font-size: clamp(1.75rem, 3.4vw, 3.25rem); line-height: 1.3; }
-.ed-lede::first-letter { float: left; padding: .06em .1em 0 0; font-size: 4.4em; line-height: .78; }
-.ed-pull {
-  grid-column: 6 / -1; position: relative; padding-left: calc(var(--u) * 8);
-  font-family: var(--ed-serif); font-style: italic; font-size: clamp(1.5rem, 2.6vw, 2.5rem); line-height: 1.35;
+.ed-intro {
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  display: grid;
+  align-content: center;
+  padding-top: calc(var(--u) * 20);
+  padding-bottom: calc(var(--u) * 20);
+  row-gap: calc(var(--u) * 16);
+  position: relative;
 }
-/* A hairline in the gutter between columns 5 and 6: it connects the quote to the section above */
+.ed-meta {
+  grid-column: 1 / 4;
+  align-self: start;
+  color: var(--ed-muted);
+  border-top: 1px solid var(--ed-line);
+  padding-top: calc(var(--u) * 4);
+  font-size: 12px;
+  line-height: 1.85;
+  letter-spacing: .22em;
+}
+.ed-meta em { font-style: normal; }
+.ed-lede {
+  grid-column: 4 / -1;
+  max-width: 65ch;
+  font-family: var(--ed-serif);
+  font-size: clamp(2rem, 3.6vw, 3.25rem);
+  line-height: 1.32;
+  letter-spacing: -.015em;
+}
+.ed-lede::first-letter { float: left; padding: .04em .12em 0 0; font-size: 4.4em; line-height: .78; }
+.ed-pull {
+  grid-column: 4 / -1;
+  max-width: 60ch;
+  position: relative;
+  padding-left: calc(var(--u) * 8);
+  font-family: var(--ed-serif);
+  font-style: italic;
+  font-size: clamp(1.4rem, 2.3vw, 2.15rem);
+  line-height: 1.4;
+  margin-top: calc(var(--u) * 2);
+}
+/* A hairline in the gutter: connects the quote to the section above */
 .ed-pull::before { content: ''; position: absolute; top: 0; bottom: 0; left: calc(var(--gutter) * -.5); width: 1px; background: var(--stop-accent); }
 
 /* Section headings run across all twelve columns, under a hairline */
 .ed-h {
   grid-column: 1 / -1; display: flex; align-items: baseline; gap: calc(var(--u) * 6);
-  margin-bottom: calc(var(--u) * 20); padding-top: calc(var(--u) * 6); border-top: 1px solid var(--ed-line);
-  font-size: clamp(2.5rem, 6vw, 5.5rem); line-height: 1; letter-spacing: -.01em;
+  margin-bottom: calc(var(--u) * 18); padding-top: calc(var(--u) * 6); border-top: 1px solid var(--ed-line);
+  font-size: clamp(2.5rem, 6vw, 5.25rem); line-height: 1; letter-spacing: -.01em;
 }
 .ed-h3 { margin-bottom: calc(var(--u) * 5); font-size: clamp(1.75rem, 2.8vw, 2.75rem); line-height: 1.15; }
-.ed-body { max-width: 60ch; }
+.ed-body { max-width: 58ch; line-height: 1.65; }
 
-/* 01 Attractions: asymmetric spreads. A vertical image on 5 columns, then a horizontal one on 6,
-   each offset on the Y axis. Images and text share one grid row, so they stay on the same baseline. */
-.ed-spreads { grid-column: 1 / -1; list-style: none; display: grid; row-gap: calc(var(--u) * 36); }
-.ed-spread { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); }
-.ed-spread__img { grid-row: 1; overflow: hidden; background: var(--ed-wash); }
-.ed-spread__img img { display: block; width: 100%; height: 116%; margin-top: -8%; object-fit: cover; }
+/* 01 Attractions: asymmetric spreads with polaroid snapshots */
+.ed-spreads { grid-column: 1 / -1; list-style: none; display: grid; row-gap: calc(var(--u) * 32); }
+.ed-spread { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: center; }
+.ed-spread__img {
+  grid-row: 1;
+  overflow: visible;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--u) * 2);
+}
 .ed-spread__text { grid-row: 1; }
 .ed-spread__text h3 { margin-bottom: calc(var(--u) * 4); font-size: clamp(1.625rem, 2.4vw, 2.375rem); line-height: 1.15; }
-.ed-spread__text .ed-no { margin-bottom: calc(var(--u) * 4); color: var(--ed-muted); }
-.ed-spread--a .ed-spread__img { grid-column: var(--a-img); aspect-ratio: 4 / 5; }
-.ed-spread--a .ed-spread__text { grid-column: var(--a-txt); align-self: end; }
-.ed-spread--b { margin-top: calc(var(--u) * 20); }
-.ed-spread--b .ed-spread__img { grid-column: var(--b-img); aspect-ratio: 3 / 2; }
-.ed-spread--b .ed-spread__text { grid-column: var(--b-txt); align-self: start; padding-top: calc(var(--u) * 12); }
+.ed-spread__text .ed-no { margin-bottom: calc(var(--u) * 4); color: var(--ed-muted); display: block; }
+.ed-spread--a .ed-spread__img { grid-column: var(--a-img); aspect-ratio: auto; }
+.ed-spread--a .ed-spread__text { grid-column: var(--a-txt); align-self: center; }
+.ed-spread--b { margin-top: calc(var(--u) * 12); }
+.ed-spread--b .ed-spread__img { grid-column: var(--b-img); aspect-ratio: auto; }
+.ed-spread--b .ed-spread__text { grid-column: var(--b-txt); align-self: center; }
 
-/* 02 Local Food: a tall image on a tinted block that crosses the gutter into the text column */
-.ed-food__fig { grid-column: 1 / 7; position: relative; }
+/* 02 Local Food: polaroid on a tinted block that crosses the gutter into the text column */
+.ed-food__fig { grid-column: 1 / 7; position: relative; overflow: visible; display: flex; align-items: center; justify-content: center; }
 .ed-food__block {
-  position: absolute; z-index: 0; top: calc(var(--u) * 16); bottom: calc(var(--u) * -16); right: calc(var(--u) * -12); width: 62%;
-  background: var(--ed-wash); background: color-mix(in srgb, var(--stop-accent) 14%, var(--ed-paper));
+  position: absolute; z-index: 0;
+  top: calc(var(--u) * 8); bottom: calc(var(--u) * -8);
+  left: calc(var(--margin) * -0.2); right: calc(var(--gutter) * -0.5);
+  background: color-mix(in srgb, var(--stop-accent) 12%, var(--ed-paper));
+  border-radius: 4px;
 }
-.ed-food__img { position: relative; z-index: 1; width: 72%; overflow: hidden; aspect-ratio: 4 / 5; background: var(--ed-wash); }
-.ed-food__img img { display: block; width: 100%; height: 118%; margin-top: -9%; object-fit: cover; }
+.ed-food__img {
+  position: relative;
+  z-index: 1;
+  width: 90%;
+  max-width: 440px;
+  overflow: visible;
+  aspect-ratio: auto;
+  background: transparent;
+}
 .ed-food__text { grid-column: 8 / -1; align-self: center; }
+
+/* ==========================================================================
+   Polaroid Photo Component (Pascal Brand / astro-webtools inspired)
+   ========================================================================== */
+.ed-polaroid {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: #FFFDF9;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAF7F2 100%);
+  padding: 14px 14px 20px 14px;
+  border-radius: 2px;
+  border: 1px solid rgba(14, 12, 10, 0.09);
+  box-shadow:
+    0 2px 4px rgba(14, 12, 10, 0.04),
+    0 8px 18px -2px rgba(14, 12, 10, 0.08),
+    0 20px 36px -6px rgba(14, 12, 10, 0.1);
+  transform: rotate(var(--polaroid-rot, 0deg)) translateY(var(--polaroid-up, 0px));
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+.ed-polaroid:hover {
+  transform: rotate(0deg) translateY(-8px) scale(1.025) !important;
+  box-shadow:
+    0 8px 20px -2px rgba(14, 12, 10, 0.12),
+    0 24px 48px -8px rgba(14, 12, 10, 0.16),
+    0 0 0 1px rgba(14, 12, 10, 0.08);
+  z-index: 8;
+}
+
+/* Translucent washi tape accent */
+.ed-polaroid__tape {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%) rotate(var(--tape-rot, -1.8deg));
+  width: 78px;
+  height: 22px;
+  background: rgba(246, 237, 222, 0.82);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(220, 204, 182, 0.45);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Photo emulsion square frame */
+.ed-polaroid__photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #1A1410;
+  border: 1px solid rgba(14, 12, 10, 0.12);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.25);
+  border-radius: 1px;
+}
+
+/* Codegrid Video #75 & #78: Accent Block Shutter Wipe */
+.ed-shutter-curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--curtain-accent, var(--stop-accent));
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+.ed-polaroid__img {
+  display: block;
+  width: 100%;
+  height: 116%;
+  margin-top: -8%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ed-polaroid:hover .ed-polaroid__img {
+  transform: scale(1.04);
+}
+
+/* Handwritten caption in bottom chin with balanced multi-line wrapping (BONT Video 6) */
+.ed-polaroid__caption {
+  font-family: var(--ed-hand);
+  font-size: clamp(1.35rem, 1.85vw, 1.75rem);
+  font-weight: 600;
+  color: #1A1410;
+  text-align: center;
+  padding-top: 12px;
+  padding-bottom: 2px;
+  padding-inline: 8px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  min-height: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-wrap: balance;
+}
 .ed-tags { list-style: none; display: flex; flex-wrap: wrap; gap: calc(var(--u) * 2); margin-top: calc(var(--u) * 10); }
 .ed-tags li {
   padding: calc(var(--u) * 1) calc(var(--u) * 4); border: 1px solid var(--ed-ink); border-radius: 999px;
   font-weight: 500; font-size: 12px; line-height: 20px; letter-spacing: .1em; text-transform: uppercase;
 }
 
-/* 03 Festivals: mostly empty on purpose */
-.ed-fest__body { grid-column: 4 / 10; }
+/* 03 Festivals & Culture: 3-column architectural calendar grid */
+.ed-fest {
+  position: relative;
+  background: color-mix(in srgb, var(--stop-accent) 3.5%, var(--ed-paper));
+  border-top: 1px solid var(--ed-line);
+  border-bottom: 1px solid var(--ed-line);
+}
+.ed-fest__grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: calc(var(--u) * 12);
+  padding-bottom: calc(var(--u) * 8);
+}
+.ed-fest__card {
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(var(--u) * 6);
+  border-top: 1px solid var(--ed-line);
+}
+.ed-fest__num {
+  font-family: var(--ed-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--stop-accent);
+  margin-bottom: calc(var(--u) * 3);
+}
+.ed-fest__season {
+  display: block;
+  font-family: var(--ed-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ed-muted);
+  margin-bottom: calc(var(--u) * 2);
+}
+.ed-fest__title {
+  font-family: var(--ed-serif);
+  font-size: clamp(1.4rem, 2vw, 1.95rem);
+  line-height: 1.2;
+  margin-bottom: calc(var(--u) * 3);
+  color: var(--ed-ink);
+}
+.ed-fest__desc {
+  font-family: var(--ed-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(14, 12, 10, 0.78);
+  margin-top: auto;
+}
 
 /* 04 Travel Tips: a dark band, the one highlighted block of the page */
-.ed-tips { padding-block: calc(var(--u) * 32); background: var(--ed-ink); color: var(--ed-paper); }
+.ed-tips {
+  padding-top: calc(var(--u) * 24);
+  padding-bottom: calc(var(--u) * 38);
+  background: var(--ed-ink);
+  color: var(--ed-paper);
+}
 .ed-tips .ed-h { border-top-color: rgba(250, 247, 242, .28); }
 .ed-tips__lead { grid-column: 1 / 6; }
+.ed-tips__lead .ed-body { line-height: 1.65; color: rgba(250, 247, 242, 0.85); }
 .ed-facts { grid-column: 7 / -1; align-self: start; }
 .ed-fact { display: grid; grid-template-columns: 1fr 2fr; column-gap: var(--gutter); padding-block: calc(var(--u) * 5); border-top: 1px solid rgba(250, 247, 242, .22); }
 .ed-fact:last-child { border-bottom: 1px solid rgba(250, 247, 242, .22); }
 .ed-fact dt { padding-top: 4px; opacity: .7; }
+.ed-fact dd { line-height: 1.6; }
 
-/* Next Stop: the page ends on a macro-size name */
-.ed-next { padding-block: calc(var(--u) * 40); background: var(--ed-paper); }
+/* Next Stop: the page ends on a macro-size name (Golden Canon Anchor) */
+.ed-next {
+  padding-top: calc(var(--u) * 24);
+  padding-bottom: calc(var(--u) * 36);
+  background: var(--ed-paper);
+}
 .ed-next__btn {
   grid-column: 1 / -1; display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--u) * 4);
   width: 100%; padding-top: calc(var(--u) * 8); border-top: 1px solid var(--ed-ink); text-align: left; color: var(--ed-ink);
+  cursor: pointer; background: transparent; border-left: 0; border-right: 0; border-bottom: 0;
 }
-.ed-next__btn strong { font-family: var(--ed-serif); font-weight: 400; font-size: clamp(3.5rem, 12vw, 11rem); line-height: .95; letter-spacing: -.02em; transition: transform .6s cubic-bezier(.16, 1, .3, 1); }
-.ed-next__btn:hover strong, .ed-next__btn:focus-visible strong { transform: translateX(1.5vw); }
+.ed-next__btn > span, .ed-next__label {
+  font-family: var(--ed-sans); font-weight: 500; font-size: 12px; line-height: 20px;
+  letter-spacing: .22em; text-transform: uppercase; font-variant-numeric: tabular-nums;
+  color: var(--ed-muted);
+}
+.ed-next__btn strong, .ed-next__name {
+  display: inline-flex; align-items: baseline; gap: clamp(12px, 1.5vw, 28px);
+  font-family: var(--ed-serif); font-weight: 400; font-size: clamp(3.5rem, 11vw, 10rem); line-height: .95; letter-spacing: -.02em;
+  color: var(--ed-ink); transition: transform .5s cubic-bezier(.16, 1, .3, 1);
+  will-change: transform;
+}
+.ed-next__arrow {
+  display: inline-block;
+  will-change: transform;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Codegrid Video #42: Cursor-Following Next Stop Floating Preview */
+.ed-next__preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
+}
+.ed-next__preview-card {
+  width: 250px;
+  background: #FFFDF9;
+  border: 1px solid rgba(14, 12, 10, 0.12);
+  border-radius: 4px;
+  padding: 10px 10px 14px;
+  box-shadow:
+    0 16px 36px -4px rgba(14, 12, 10, 0.22),
+    0 2px 6px rgba(14, 12, 10, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ed-next__preview-photo {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #1A1410;
+}
+.ed-next__preview-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ed-next__preview-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ed-next__preview-sub {
+  font-family: var(--ed-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--stop-accent);
+}
+.ed-next__preview-title {
+  font-family: var(--ed-serif);
+  font-size: 1.25rem;
+  line-height: 1.15;
+  color: var(--ed-ink);
+  margin: 0;
+}
+.ed-next__preview-tag {
+  font-family: var(--ed-sans);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--ed-muted);
+  margin: 0;
+}
 
 /* Anything not yet supplied is shown, not hidden */
 .ph { background: none; color: #8A5A14; border: 1px dashed currentColor; padding: 0 .4em; font-family: var(--ed-sans); font-size: .8em; font-style: normal; }
@@ -143,38 +565,2098 @@
 
 /* Each stop has its own layout. Same grid, different composition. */
 [data-layout='b'] { --a-img: 8 / 13; --a-txt: 2 / 7; --b-img: 1 / 7; --b-txt: 8 / 13; }
-[data-layout='b'] .ed-hero__grid { top: 0; bottom: 0; align-content: center; text-align: center; }
-[data-layout='b'] .ed-hero__title, [data-layout='b'] .ed-hero__tag { grid-column: 1 / -1; }
+[data-layout='b'] .ed-hero__grid { bottom: calc(var(--u) * 20); text-align: left; }
+[data-layout='b'] .ed-hero__title, [data-layout='b'] .ed-hero__tag { grid-column: 1 / 11; }
 [data-layout='b'] .ed-food__fig { grid-column: 7 / -1; order: 2; }
 [data-layout='b'] .ed-food__text { grid-column: 1 / 6; }
-[data-layout='b'] .ed-food__block { right: auto; left: calc(var(--u) * -12); }
+[data-layout='b'] .ed-food__block { right: calc(var(--margin) * -0.2); left: calc(var(--gutter) * -0.5); }
 [data-layout='b'] .ed-food__img { margin-left: auto; }
 [data-layout='c'] { --a-img: 2 / 7; --a-txt: 8 / 13; --b-img: 6 / 13; --b-txt: 1 / 5; }
-[data-layout='c'] .ed-hero__grid { top: calc(var(--u) * 32); bottom: auto; text-align: right; }
-[data-layout='c'] .ed-hero__title { grid-column: 3 / -1; }
-[data-layout='c'] .ed-hero__tag { grid-column: 6 / -1; }
-[data-layout='c'] .ed-fest__body { grid-column: 6 / 12; }
+[data-layout='c'] .ed-hero__grid { top: calc(var(--u) * 32); bottom: auto; text-align: left; }
+[data-layout='c'] .ed-hero__title { grid-column: 1 / 11; }
+[data-layout='c'] .ed-hero__tag { grid-column: 1 / 8; }
 
-/* Fixed controls lose their app colours and their tilt on a destination page */
-body[data-phase='destination'] .miu-badge { background: var(--ink); color: var(--cream); transform: none; }
-body[data-phase='destination'] .miu-icon-btn,
-body[data-phase='destination'] .miu-sound-btn { transform: none; background: var(--cream); box-shadow: 0 0 0 1px rgba(14, 12, 10, .2); }
-body[data-phase='destination'] .miu-chip.is-active { background: var(--ink); }
-
+/* Responsive Preservation (BONT Video 10) */
 @media (max-width: 900px) {
-  .destination { --a-img: 1 / -1; --a-txt: 1 / -1; --b-img: 1 / -1; --b-txt: 1 / -1; font-size: 16px; }
-  .ed-sec { padding-block: calc(var(--u) * 24); }
+  .destination { --a-img: 1 / -1; --a-txt: 1 / -1; --b-img: 1 / -1; --b-txt: 1 / -1; font-size: 16px; line-height: 26px; }
+  .ed-sec { padding-top: calc(var(--u) * 18); padding-bottom: calc(var(--u) * 28); }
+  .ed-intro { min-height: auto; padding-top: calc(var(--u) * 20); padding-bottom: calc(var(--u) * 16); }
+  .ed-spreads { row-gap: calc(var(--u) * 24); }
   .ed-spread__img, .ed-spread__text { grid-row: auto; }
   .ed-spread--b { margin-top: 0; }
-  .ed-spread--a .ed-spread__text, .ed-spread--b .ed-spread__text { padding-top: calc(var(--u) * 6); align-self: start; }
-  .ed-meta, .ed-lede, .ed-pull, .ed-fest__body, .ed-tips__lead, .ed-facts,
-  .ed-food__fig, .ed-food__text, [data-layout] .ed-food__fig, [data-layout] .ed-food__text, [data-layout] .ed-fest__body { grid-column: 1 / -1; }
-  .ed-pull { padding-left: calc(var(--u) * 5); }
+  .ed-spread--a .ed-spread__text, .ed-spread--b .ed-spread__text { padding-top: calc(var(--u) * 4); align-self: start; }
+  .ed-meta, .ed-lede, .ed-pull, .ed-tips__lead, .ed-facts,
+  .ed-food__fig, .ed-food__text, [data-layout] .ed-food__fig, [data-layout] .ed-food__text { grid-column: 1 / -1; }
+  .ed-lede { font-size: clamp(1.5rem, 5vw, 2.2rem); }
+  .ed-pull { padding-left: calc(var(--u) * 5); font-size: clamp(1.25rem, 4vw, 1.75rem); }
   .ed-pull::before { left: 0; }
-  .ed-food__fig { margin-bottom: calc(var(--u) * 12); }
-  .ed-food__img { width: 82%; }
-  .ed-tips__lead { margin-bottom: calc(var(--u) * 12); }
-  .ed-hero__title, [data-layout] .ed-hero__title, .ed-hero__tag, [data-layout] .ed-hero__tag { grid-column: 1 / -1; }
-  [data-layout='c'] .ed-hero__grid { top: auto; bottom: calc(var(--u) * 20); text-align: left; }
+  .ed-fest__grid { grid-template-columns: 1fr; row-gap: calc(var(--u) * 8); }
+  .ed-food__fig { margin-bottom: calc(var(--u) * 10); }
+  .ed-food__img { width: 100%; max-width: 380px; }
+  .ed-tips__lead { margin-bottom: calc(var(--u) * 10); }
+  .ed-hero__title, [data-layout] .ed-hero__title, .ed-hero__tag, [data-layout] .ed-hero__tag { grid-column: 1 / -1; font-size: clamp(3.5rem, 16vw, 7.5rem); }
   .ed-hero__cue { display: none; }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  /* Tablet preservation: keep 2-column fest grid and 2-column facts */
+  .ed-fest__grid { grid-template-columns: repeat(2, 1fr); }
+  .ed-facts { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
+}
+
+/* ==========================================================================
+   10 Distinct Award-Winning Creative Editorial Transitions & Animations
+   (Both section-to-section and page-to-page!)
+   ========================================================================== */
+
+/* Universal Technique Banner */
+.ed-technique-banner {
+  grid-column: 1 / -1;
+  margin-bottom: calc(var(--u) * 14);
+  padding: calc(var(--u) * 6) calc(var(--u) * 8);
+  background: rgba(14, 12, 10, 0.03);
+  border-left: 3px solid var(--stop-accent);
+  border-radius: 4px;
+}
+.ed-technique-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: calc(var(--u) * 2);
+}
+.ed-technique-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--stop-accent);
+}
+.ed-technique-no {
+  font-family: var(--ed-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--stop-accent);
+}
+.ed-technique-title {
+  font-family: var(--ed-serif);
+  font-size: clamp(1.4rem, 2.2vw, 2.1rem);
+  line-height: 1.2;
+  margin-bottom: calc(var(--u) * 1);
+  color: var(--ed-ink);
+}
+.ed-technique-desc {
+  font-family: var(--ed-sans);
+  font-size: 0.95rem;
+  color: var(--ed-muted);
+  max-width: 68ch;
+  line-height: 1.5;
+}
+.ed-technique-tagline {
+  margin-top: calc(var(--u) * 2);
+  font-family: var(--ed-serif);
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--stop-accent);
+  max-width: 68ch;
+}
+
+/* 1. Elastic Horizontal Gallery Scrub (Srinagar) */
+.ed-horizontal-section {
+  position: relative;
+  overflow: visible;
+  padding-block: calc(var(--u) * 20);
+}
+.ed-horiz-viewport {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  overflow: hidden;
+  padding-block: calc(var(--u) * 12);
+}
+.ed-horiz-track {
+  display: flex;
+  gap: calc(var(--u) * 14);
+  width: max-content;
+  padding-left: clamp(20px, 8vw, 120px);
+  padding-right: 15vw;
+  align-items: center;
+  will-change: transform;
+}
+.ed-horiz-lead {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: clamp(260px, 24vw, 360px);
+  flex-shrink: 0;
+  padding-right: calc(var(--u) * 8);
+}
+.ed-horiz-badge {
+  font-family: var(--ed-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--stop-accent);
+  margin-bottom: calc(var(--u) * 3);
+}
+.ed-horiz-hint {
+  font-family: var(--ed-serif);
+  font-style: italic;
+  font-size: clamp(1.4rem, 2vw, 2rem);
+  line-height: 1.25;
+  color: var(--ed-muted);
+}
+.ed-horiz-slide {
+  display: flex;
+  flex-direction: column;
+  width: clamp(300px, 30vw, 420px);
+  flex-shrink: 0;
+  will-change: transform;
+}
+.ed-horiz-polaroid-wrap {
+  width: 100%;
+}
+.ed-horiz-text {
+  margin-top: calc(var(--u) * 6);
+  padding-inline: calc(var(--u) * 2);
+}
+.ed-horiz-text .ed-no {
+  font-family: var(--ed-sans);
+  font-size: 12px;
+  color: var(--ed-muted);
+  letter-spacing: 0.15em;
+  margin-bottom: calc(var(--u) * 2);
+  display: block;
+}
+.ed-horiz-text h3 {
+  font-family: var(--ed-serif);
+  font-size: clamp(1.4rem, 1.9vw, 1.85rem);
+  line-height: 1.2;
+  margin-bottom: calc(var(--u) * 2);
+}
+.ed-horiz-text p {
+  font-family: var(--ed-sans);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--ed-muted);
+}
+.ed-horiz-progress-bar {
+  width: min(440px, 80vw);
+  height: 3px;
+  background: rgba(14, 12, 10, 0.12);
+  margin: calc(var(--u) * 8) auto 0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ed-horiz-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--stop-accent);
+  border-radius: 999px;
+  transition: width 0.08s linear;
+}
+
+/* 2. Overlapping Drawer Stack (Manali) */
+.ed-drawer-section {
+  position: relative;
+  padding-block: calc(var(--u) * 20);
+}
+.ed-drawer-stage {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-inline: var(--margin);
+}
+.ed-drawer-stack-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 16);
+}
+.ed-drawer-card {
+  position: relative;
+  width: 100%;
+  border-radius: 12px;
+  overflow: visible;
+  transition: transform 0.3s ease;
+}
+.ed-drawer-card-inner {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: center;
+  padding: calc(var(--u) * 10);
+  background: #FFFDF9;
+  border: 1px solid rgba(14, 12, 10, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(14, 12, 10, 0.08);
+  will-change: transform, opacity;
+}
+.ed-drawer-polaroid {
+  grid-column: 1 / 7;
+  display: flex;
+  justify-content: center;
+}
+.ed-drawer-text {
+  grid-column: 8 / 13;
+}
+
+/* 3. Structural Grid Merge (Amritsar) */
+.ed-grid-merge-section {
+  position: relative;
+  padding-block: calc(var(--u) * 24);
+}
+.ed-grid-merge-stage {
+  position: relative;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-inline: var(--margin);
+}
+.ed-grid-merge-canvas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: calc(var(--u) * 6);
+  row-gap: calc(var(--u) * 8);
+  min-height: 480px;
+  align-items: start;
+}
+.ed-merge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: transform, opacity;
+}
+.ed-merge-label {
+  margin-top: calc(var(--u) * 4);
+  text-align: center;
+}
+.ed-merge-label .ed-no {
+  color: var(--stop-accent);
+  display: block;
+  margin-bottom: 2px;
+}
+.ed-merge-label p {
+  font-family: var(--ed-serif);
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+.ed-merge-hint {
+  text-align: center;
+  margin-top: calc(var(--u) * 8);
+  font-family: var(--ed-sans);
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--stop-accent);
+  opacity: 0.8;
+}
+.ed-merge-story-flow {
+  margin-top: calc(var(--u) * 20);
+  row-gap: calc(var(--u) * 12);
+}
+.ed-merge-story-card {
+  grid-column: span 6;
+  padding: calc(var(--u) * 6);
+  border-top: 1px solid rgba(14, 12, 10, 0.12);
+}
+
+/* 4. Asymmetric Scissors Split (Jaipur) */
+.ed-scissors-section {
+  position: relative;
+  padding-block: calc(var(--u) * 24);
+}
+.ed-scissors-container {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: start;
+}
+.ed-scissors-col {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 24);
+  will-change: transform;
+}
+.ed-scissors-col--left {
+  grid-column: 1 / 7;
+}
+.ed-scissors-col--right {
+  grid-column: 7 / 13;
+  margin-top: calc(var(--u) * 16);
+}
+.ed-scissors-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ed-scissors-meta {
+  margin-top: calc(var(--u) * 6);
+  width: 100%;
+  max-width: 420px;
+}
+
+/* 5. Scale-Down Portal Frame (Agra) */
+.ed-portal-section {
+  position: relative;
+  padding-block: calc(var(--u) * 20);
+}
+.ed-portal-stage-wrap {
+  position: relative;
+  min-height: 180vh;
+}
+.ed-portal-viewport {
+  position: sticky;
+  top: 12vh;
+  height: 76vh;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: center;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding-inline: var(--margin);
+}
+.ed-portal-frame-box {
+  grid-column: 1 / 8;
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  will-change: transform, border-radius;
+}
+.ed-portal-frame-content {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.ed-portal-badge {
+  margin-top: calc(var(--u) * 4);
+}
+.ed-portal-badge span {
+  display: inline-block;
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: rgba(14, 12, 10, 0.06);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--stop-accent);
+}
+.ed-portal-narrative-flow {
+  grid-column: 8 / 13;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 6);
+}
+.ed-portal-step-card {
+  padding: calc(var(--u) * 6);
+  background: rgba(255, 253, 249, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(14, 12, 10, 0.08);
+  border-radius: 6px;
+  opacity: 0.45;
+  transition: all 0.35s ease;
+}
+.ed-portal-step-card.is-active {
+  opacity: 1;
+  border-color: var(--stop-accent);
+  background: #FFFDF9;
+  box-shadow: 0 10px 30px rgba(14, 12, 10, 0.08);
+  transform: translateX(6px);
+}
+.ed-portal-subgallery {
+  margin-top: calc(var(--u) * 20);
+  row-gap: calc(var(--u) * 16);
+}
+.ed-portal-subitem {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 3);
+}
+
+/* 6. Background Color Bleed (Goa) */
+.ed-color-bleed-section {
+  position: relative;
+  padding-block: calc(var(--u) * 20);
+  overflow: hidden;
+}
+.ed-color-bleed-canvas {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #FFE3C2 0%, #FFD2A1 100%);
+  transition: background 0.8s ease;
+  z-index: 0;
+}
+.ed-color-bleed-stage {
+  position: relative;
+  min-height: 180vh;
+  z-index: 1;
+}
+.ed-color-bleed-sticky {
+  position: sticky;
+  top: 14vh;
+  height: 72vh;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: center;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding-inline: var(--margin);
+}
+.ed-color-bleed-typography {
+  grid-column: 1 / 7;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 3);
+}
+.ed-color-bleed-macro-word {
+  font-family: var(--ed-serif);
+  font-size: clamp(3.5rem, 9vw, 8.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: #1A1410;
+  mix-blend-mode: multiply;
+}
+.ed-color-bleed-tone-indicator {
+  font-family: var(--ed-sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #1A1410;
+}
+.ed-color-bleed-cards {
+  grid-column: 8 / 13;
+  position: relative;
+  height: 65vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ed-color-bleed-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: scale(0.92);
+}
+.ed-color-bleed-card.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+.ed-color-bleed-caption {
+  margin-top: calc(var(--u) * 3);
+  text-align: center;
+}
+
+/* 7. Masked Circular Reveal (Munnar) */
+.ed-circular-section {
+  position: relative;
+  padding-block: calc(var(--u) * 20);
+}
+.ed-circular-stage-wrap {
+  position: relative;
+  min-height: 160vh;
+}
+.ed-circular-viewport {
+  position: sticky;
+  top: 12vh;
+  height: 76vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding-inline: var(--margin);
+}
+.ed-circular-clip-mask {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  clip-path: circle(12% at 50% 50%);
+  border-radius: 12px;
+  overflow: hidden;
+  will-change: clip-path;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+}
+.ed-circular-mask-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.ed-circular-hero-backdrop {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.ed-circular-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ed-circular-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%);
+}
+.ed-circular-hero-content {
+  position: absolute;
+  bottom: calc(var(--u) * 12);
+  left: calc(var(--u) * 12);
+  right: calc(var(--u) * 12);
+  color: #FFF;
+}
+.ed-circular-pill-badge {
+  margin-top: calc(var(--u) * 4);
+}
+.ed-circular-pill-badge span {
+  display: inline-block;
+  padding: 4px 18px;
+  border-radius: 999px;
+  background: rgba(14, 12, 10, 0.08);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--stop-accent);
+}
+.ed-circular-gallery {
+  margin-top: calc(var(--u) * 20);
+  row-gap: calc(var(--u) * 16);
+}
+.ed-circular-item {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 3);
+}
+
+/* 8. Staggered Fluid Character Reveals (Gangtok) */
+.ed-fluid-char-section {
+  position: relative;
+  padding-block: calc(var(--u) * 24);
+}
+.ed-fluid-char-container {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 28);
+}
+.ed-fluid-char-row {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: center;
+}
+.ed-fluid-char-polaroid {
+  grid-column: 1 / 6;
+  display: flex;
+  justify-content: center;
+  perspective: 1000px;
+}
+.ed-fluid-char-text {
+  grid-column: 7 / 13;
+}
+.ed-fluid-char-title {
+  font-size: clamp(2rem, 3.2vw, 3.2rem);
+  line-height: 1.15;
+  margin-block: calc(var(--u) * 3) calc(var(--u) * 4);
+}
+.ed-fluid-mantra {
+  margin-top: calc(var(--u) * 4);
+  font-family: var(--ed-serif);
+  font-style: italic;
+  color: var(--stop-accent);
+  font-size: 1.15rem;
+}
+
+/* 9. Typographic Mask Tunneling (Kutch) */
+.ed-tunnel-section {
+  position: relative;
+  padding-block: calc(var(--u) * 20);
+}
+.ed-tunnel-stage-wrap {
+  position: relative;
+  min-height: 200vh;
+}
+.ed-tunnel-viewport {
+  position: sticky;
+  top: 12vh;
+  height: 76vh;
+  width: 100%;
+  max-width: 1680px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 12px;
+  perspective: 1200px;
+}
+.ed-tunnel-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ed-tunnel-backdrop-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ed-tunnel-backdrop-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(233, 227, 211, 0.2);
+}
+.ed-tunnel-glyph-box {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+.ed-tunnel-glyph-svg {
+  width: 100%;
+  height: 100%;
+}
+.ed-tunnel-cue-pill {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(14, 12, 10, 0.75);
+  color: #FFF;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.ed-tunnel-gallery {
+  margin-top: calc(var(--u) * 20);
+  row-gap: calc(var(--u) * 16);
+}
+.ed-tunnel-item {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 3);
+}
+
+/* 10. WebGL Liquid Noise Displacement (Shillong) */
+.ed-liquid-noise-section {
+  position: relative;
+  padding-block: calc(var(--u) * 20);
+}
+.ed-liquid-noise-container {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 16);
+}
+.ed-liquid-noise-lead {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 3);
+  align-items: flex-start;
+}
+.ed-water-ripple-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(40, 80, 90, 0.1);
+  border: 1px solid rgba(40, 80, 90, 0.25);
+  color: #28505A;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.ed-liquid-noise-gallery {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: calc(var(--u) * 16);
+}
+.ed-liquid-noise-item {
+  grid-column: span 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ed-displace-target {
+  filter: url(#shillong-ripple-filter);
+  transition: filter 0.2s ease;
+}
+.ed-liquid-noise-caption {
+  margin-top: calc(var(--u) * 4);
+  text-align: center;
+  max-width: 44ch;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .ed-scissors-container { grid-template-columns: 1fr; }
+  .ed-scissors-col--left, .ed-scissors-col--right { grid-column: 1 / -1; margin-top: 0; }
+  .ed-portal-viewport, .ed-color-bleed-sticky { position: relative; top: auto; height: auto; grid-template-columns: 1fr; margin-bottom: 2rem; }
+  .ed-portal-frame-box, .ed-portal-narrative-flow, .ed-color-bleed-typography, .ed-color-bleed-cards { grid-column: 1 / -1; }
+  .ed-grid-merge-canvas { grid-template-columns: 1fr; gap: 2rem; }
+  .ed-drawer-card-inner { grid-template-columns: 1fr; gap: 1.5rem; }
+  .ed-drawer-polaroid, .ed-drawer-text { grid-column: 1 / -1; }
+  .ed-fluid-char-row { grid-template-columns: 1fr; }
+  .ed-fluid-char-polaroid, .ed-fluid-char-text { grid-column: 1 / -1; }
+  .ed-merge-story-card, .ed-portal-subitem, .ed-circular-item, .ed-tunnel-item, .ed-liquid-noise-item { grid-column: 1 / -1; }
+}
+
+/* ==========================================================================
+   Srinagar: Proportional Shrinking Hero & Upward Next Section (Zero Delay)
+   ========================================================================== */
+
+article.ed[data-chapter="srinagar"] {
+  position: relative;
+  background: transparent !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* 1. Hero frame sequence track: 260vh gives 160vh of pure pinned frame scrubbing */
+article.ed[data-chapter="srinagar"] .ed-hero-track {
+  position: relative !important;
+  width: 100% !important;
+  height: 260vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-hero {
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+  min-height: 0 !important;
+  z-index: 1;
+  overflow: hidden !important;
+  background: #000000 !important;
+  pointer-events: auto;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-hero__frame {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #000000 !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-hero__canvas {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-hero__shade {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.04) 40%, rgba(0, 0, 0, 0.45) 100%) !important;
+  pointer-events: none;
+  z-index: 2;
+}
+
+article.ed[data-chapter="srinagar"] .ed-hero__grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--u) * 20);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  max-width: 1680px;
+  margin: 0 auto;
+  padding-inline: var(--margin);
+  z-index: 3;
+  transform-origin: center bottom !important;
+  will-change: transform, opacity;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* 2. Section 2: White Srinagar section - positioned directly after hero track */
+article.ed[data-chapter="srinagar"] .ed-next-section {
+  position: relative !important;
+  z-index: 5;
+  margin-top: 0 !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  background: #ffffff !important;
+  color: #0E0C0A;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* 3. Section 3: #1591EA Blue Section - High-Fashion Magazine Editorial Spread */
+article.ed[data-chapter="srinagar"] .ed-blue-section {
+  position: relative !important;
+  z-index: 5;
+  min-height: 100vh !important;
+  height: auto !important;
+  width: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  background: #1591EA !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-section__inner {
+  position: relative !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  max-width: 1680px !important;
+  margin: 0 auto !important;
+  padding-top: clamp(40px, 7vh, 80px) !important;
+  padding-bottom: clamp(40px, 7vh, 80px) !important;
+  padding-left: clamp(24px, 5vw, 88px) !important;
+  padding-right: clamp(24px, 5vw, 88px) !important;
+  display: grid !important;
+  grid-template-columns: minmax(300px, 34vw) 1fr !important;
+  column-gap: clamp(36px, 5vw, 80px) !important;
+  align-items: start !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 960px) {
+  article.ed[data-chapter="srinagar"] .ed-blue-section__inner {
+    grid-template-columns: 1fr !important;
+    row-gap: 40px !important;
+  }
+}
+
+/* Keepsake Folder: the blue section holds nothing but the Framer Keepsake component */
+article.ed[data-chapter="srinagar"] .ed-blue-section--keepsake {
+  min-height: max(150vh, 1100px) !important;
+  overflow: visible !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-section__inner--keepsake {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  padding-bottom: clamp(32px, 6vh, 72px) !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-keepsake {
+  position: relative;
+  width: 149px;
+  height: 158px;
+  margin-bottom: clamp(48px, 9vh, 120px);
+  transform: scale(2);
+  transform-origin: bottom center;
+}
+
+/* Left Media Column */
+article.ed[data-chapter="srinagar"] .ed-blue-media-col {
+  position: relative !important;
+  width: 100% !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-figure {
+  position: relative !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  height: clamp(440px, 65vh, 720px) !important;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-tape {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #0E0C0A;
+  background: #FFFFFF;
+  padding: 4px 10px;
+  font-weight: 700;
+  border-radius: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  display: block !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-caption {
+  margin-top: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: 'Reckless', Georgia, serif !important;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-caption__no {
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 11px;
+}
+
+/* Right Content Column */
+article.ed[data-chapter="srinagar"] .ed-blue-content {
+  position: relative !important;
+  width: 100% !important;
+  padding-top: 8px;
+}
+
+/* Architectural Watermark Monogram */
+article.ed[data-chapter="srinagar"] .ed-blue-watermark {
+  position: absolute;
+  top: -40px;
+  right: -20px;
+  font-family: 'SharpGroteskBlack', 'Sharp Grotesk', system-ui, sans-serif !important;
+  font-size: clamp(14rem, 24vw, 26rem);
+  font-weight: 700;
+  line-height: 0.8;
+  color: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+/* Header & Title */
+article.ed[data-chapter="srinagar"] .ed-blue-header {
+  position: relative;
+  z-index: 1;
+  margin-bottom: clamp(24px, 4vh, 40px);
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 14px;
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-kicker__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-kicker__sep {
+  opacity: 0.5;
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-title {
+  font-family: 'SharpGroteskBlack', 'Sharp Grotesk', system-ui, -apple-system, sans-serif !important;
+  font-size: clamp(2.5rem, 5vw, 5.2rem) !important;
+  font-weight: 600 !important;
+  line-height: 0.95 !important;
+  letter-spacing: 0.02em !important;
+  color: #FFFFFF !important;
+  margin: 0 0 20px 0 !important;
+  text-transform: uppercase;
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-title em {
+  font-family: 'SharpGroteskBlack', 'Sharp Grotesk', system-ui, -apple-system, sans-serif !important;
+  font-style: normal;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-lede {
+  font-family: 'Reckless', Georgia, serif !important;
+  font-size: clamp(1.2rem, 1.7vw, 1.45rem);
+  line-height: 1.48;
+  color: #FAF7F2;
+  max-width: 58ch;
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* 2-Column Editorial Story Grid */
+article.ed[data-chapter="srinagar"] .ed-blue-body-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: clamp(20px, 3vw, 40px);
+  row-gap: 20px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  margin-bottom: clamp(24px, 4vh, 44px);
+}
+
+@media (max-width: 680px) {
+  article.ed[data-chapter="srinagar"] .ed-blue-body-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-para {
+  font-family: 'Reckless', Georgia, serif !important;
+  font-size: clamp(1.05rem, 1.25vw, 1.22rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-para em {
+  font-style: italic;
+  color: #FFFFFF;
+}
+
+/* Iconic Drop Cap */
+article.ed[data-chapter="srinagar"] .ed-blue-dropcap {
+  float: left;
+  font-family: 'SharpGroteskBlack', 'Sharp Grotesk', system-ui, -apple-system, sans-serif !important;
+  font-size: 3.4rem;
+  line-height: 0.8;
+  padding-right: 12px;
+  padding-top: 2px;
+  color: #FFFFFF !important;
+  font-weight: 600;
+}
+
+/* Field Notes Ledger */
+article.ed[data-chapter="srinagar"] .ed-blue-ledger {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(11, 58, 96, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-left: 3px solid #FFFFFF;
+  border-radius: 3px;
+  backdrop-filter: blur(8px);
+}
+
+@media (max-width: 768px) {
+  article.ed[data-chapter="srinagar"] .ed-blue-ledger {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-ledger__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-ledger__label {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+article.ed[data-chapter="srinagar"] .ed-blue-ledger__val {
+  font-family: var(--font-sans, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  color: #FAF7F2;
+  line-height: 1.35;
+}
+
+
+/* Gehry Getty TitleStretch Structure (Top-Left Aligned with Elongated Vertical Height) */
+article.ed[data-chapter="srinagar"] .stretch-inner,
+article.ed[data-chapter="srinagar"] .titleStretch__inner {
+  position: relative !important;
+  height: 100vh !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: space-between !important;
+  overflow: hidden !important;
+  padding-top: clamp(40px, 7vh, 80px) !important;
+  padding-bottom: clamp(40px, 7vh, 80px) !important;
+  padding-left: clamp(24px, 5vw, 88px) !important;
+  padding-right: clamp(20px, 3.5vw, 52px) !important;
+  box-sizing: border-box !important;
+}
+
+/* Getty Editorial Hero Flex Container (Title at Top-Left, Description at Bottom-Right) */
+article.ed[data-chapter="srinagar"] .editorialHero {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+article.ed[data-chapter="srinagar"] .editorialHero__titleContainer {
+  width: 100% !important;
+  display: block !important;
+  align-self: flex-start !important;
+}
+
+article.ed[data-chapter="srinagar"] .stretch-content,
+article.ed[data-chapter="srinagar"] .titleStretch__content {
+  width: 100% !important;
+  max-width: 1400px !important;
+  margin: 0 !important;
+  transform-origin: left top !important;
+  will-change: transform;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+}
+
+article.ed[data-chapter="srinagar"] .stretch-content svg,
+article.ed[data-chapter="srinagar"] .titleStretch__content svg {
+  width: 100% !important;
+  height: clamp(140px, 26vh, 340px) !important;
+  overflow: visible !important;
+  display: block !important;
+}
+
+article.ed[data-chapter="srinagar"] .stretch-content text,
+article.ed[data-chapter="srinagar"] .titleStretch__content text {
+  font-family: 'SharpGroteskBlack', 'Sharp Grotesk', system-ui, -apple-system, sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  user-select: none;
+}
+
+/* Getty Editorial Hero Description & Lower Stage Split (Left Cutout, Right Narrative) */
+article.ed[data-chapter="srinagar"] .editorialHero__lowerStage {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 1fr) !important;
+  column-gap: clamp(32px, 5.5vw, 84px) !important;
+  align-items: end !important;
+  width: 100% !important;
+  margin-top: auto !important;
+  box-sizing: border-box !important;
+  z-index: 2;
+}
+
+@media (max-width: 960px) {
+  article.ed[data-chapter="srinagar"] .editorialHero__lowerStage {
+    grid-template-columns: 1fr !important;
+    row-gap: 28px !important;
+  }
+}
+
+/* 3D Realism Houseboat Poster Cutout Column (Left Side) */
+article.ed[data-chapter="srinagar"] .editorialHero__cutoutCol {
+  position: relative !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  align-items: flex-start !important;
+  will-change: transform, opacity;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+article.ed[data-chapter="srinagar"] .ed-houseboat-poster {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 720px !important;
+}
+
+/* Architectural Micro-Badge */
+article.ed[data-chapter="srinagar"] .ed-houseboat-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-family: var(--font-mono, monospace) !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: #0E0C0A !important;
+  background: #FFFFFF !important;
+  border: 1px solid rgba(14, 12, 10, 0.16) !important;
+  padding: 5px 12px !important;
+  border-radius: 999px !important;
+  margin-bottom: 12px !important;
+  box-shadow: 0 4px 14px rgba(14, 12, 10, 0.06) !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-houseboat-badge__dot {
+  width: 6.5px !important;
+  height: 6.5px !important;
+  border-radius: 50% !important;
+  background: #1591EA !important;
+  box-shadow: 0 0 6px rgba(21, 145, 234, 0.6) !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-houseboat-badge__sep {
+  opacity: 0.35 !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-houseboat-badge__loc {
+  color: #6B645B !important;
+  font-weight: 500 !important;
+}
+
+/* 3D Realistic Depth & Multi-Tier Drop Shadows */
+article.ed[data-chapter="srinagar"] .ed-houseboat-frame {
+  position: relative !important;
+  width: 100% !important;
+  display: block !important;
+  filter: drop-shadow(0 20px 28px rgba(14, 12, 10, 0.15)) drop-shadow(0 38px 60px rgba(14, 12, 10, 0.11)) !important;
+  transform-origin: left bottom !important;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-houseboat-poster:hover .ed-houseboat-frame {
+  transform: translateY(-8px) scale(1.02) !important;
+  filter: drop-shadow(0 28px 36px rgba(14, 12, 10, 0.20)) drop-shadow(0 50px 80px rgba(14, 12, 10, 0.14)) !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-houseboat-img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: clamp(260px, 38vh, 460px) !important;
+  object-fit: contain !important;
+  object-position: left bottom !important;
+  display: block !important;
+}
+
+/* Micro Caption Note */
+article.ed[data-chapter="srinagar"] .ed-houseboat-caption {
+  margin-top: 10px !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 10px !important;
+  border-left: 2px solid #0E0C0A !important;
+  padding-left: 10px !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-houseboat-caption__tag {
+  font-family: var(--font-mono, monospace) !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: #0E0C0A !important;
+}
+
+article.ed[data-chapter="srinagar"] .ed-houseboat-caption__desc {
+  font-family: 'Reckless', Georgia, serif !important;
+  font-size: 13px !important;
+  line-height: 1.48 !important;
+  color: #6B645B !important;
+  margin: 0 !important;
+}
+
+/* Getty Editorial Hero Description: Positioned at Bottom-Right with Narrow Width & Extended Vertical Flow */
+article.ed[data-chapter="srinagar"] .editorialHero__description,
+article.ed[data-chapter="srinagar"] .heading1Text {
+  position: relative !important;
+  display: block !important;
+  align-self: flex-end !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  max-width: 32rem !important;
+  width: 100% !important;
+  transform: scaleX(1.06);
+  transform-origin: right bottom;
+  font-family: 'Reckless', Georgia, serif !important;
+  font-size: clamp(1.35rem, 1.8vw, 1.62rem) !important;
+  font-weight: 400 !important;
+  line-height: 1.48 !important;
+  letter-spacing: 0.01em !important;
+  color: #0E0C0A !important;
+  text-wrap: pretty !important;
+  text-align: left !important;
+  will-change: transform, opacity;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+article.ed[data-chapter="srinagar"] .ed-next-section .ed-intro {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* ==========================================================================
+   Srinagar: Panel Sliding Wipe & Overlap on Existing Sections
+   ========================================================================== */
+article.ed[data-chapter="srinagar"] .ed-places,
+article.ed[aria-label*="Srinagar"] .ed-places {
+  padding-bottom: 60vh;
+}
+
+@media (min-width: 901px) {
+  article.ed[data-chapter="srinagar"] .ed-places .ed-spread:last-child,
+  article.ed[aria-label*="Srinagar"] .ed-places .ed-spread:last-child {
+    position: sticky;
+    top: calc(50vh - 220px);
+    z-index: 1;
+    will-change: transform, opacity;
+  }
+}
+
+article.ed[data-chapter="srinagar"] .ed-food,
+article.ed[aria-label*="Srinagar"] .ed-food {
+  position: relative;
+  z-index: 5;
+  background-color: #12232E !important;
+  color: #FAF7F2;
+  box-shadow: 0 -40px 100px rgba(0, 0, 0, 0.7);
+  min-height: 100vh;
+  align-content: center;
+  max-width: 100%;
+  width: 100%;
+  padding-inline: max(var(--margin), calc((100% - 1680px) / 2 + var(--margin)));
+}
+
+article.ed[data-chapter="srinagar"] .ed-food .ed-h,
+article.ed[aria-label*="Srinagar"] .ed-food .ed-h {
+  border-top-color: rgba(250, 247, 242, 0.22);
+  color: #FAF7F2;
+}
+
+article.ed[data-chapter="srinagar"] .ed-food .ed-tags li,
+article.ed[aria-label*="Srinagar"] .ed-food .ed-tags li {
+  border-color: rgba(250, 247, 242, 0.35);
+  color: #FAF7F2;
+}
+
+article.ed[data-chapter="srinagar"] .ed-food .ed-food__block,
+article.ed[aria-label*="Srinagar"] .ed-food .ed-food__block {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+
+/* ==========================================================================
+   Visually Distinct Editorial Section Panels (All Destination Pages)
+   ========================================================================== */
+
+/* 1. Introduction Panel */
+.ed-intro {
+  position: relative;
+  background: var(--ed-paper);
+  border-bottom: 1px solid var(--ed-line);
+}
+
+/* 2. Attractions Section: Distinct Framed Gallery Chapter */
+.ed-places {
+  position: relative;
+  background: color-mix(in srgb, var(--stop-accent) 2.5%, #FAF7F2);
+  border-top: 1px solid var(--ed-line);
+  border-bottom: 1px solid var(--ed-line);
+  padding-block: calc(var(--u) * 36);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* 3. Local Food Section: Culinary Panel (Universal) */
+.ed-food {
+  position: relative;
+  background: color-mix(in srgb, var(--stop-accent) 5.5%, #FFFDF9);
+  border-top: 1px solid var(--ed-line);
+  border-bottom: 1px solid var(--ed-line);
+  padding-block: calc(var(--u) * 36);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 8px 32px rgba(14, 12, 10, 0.03);
+}
+
+/* 4. Festivals Cultural Panel */
+.ed-fest {
+  position: relative;
+  background: color-mix(in srgb, var(--stop-accent) 2%, #FAF7F2);
+  border-bottom: 1px solid var(--ed-line);
+  padding-block: calc(var(--u) * 28);
+}
+
+/* 5. Travel Tips Panel: Dark Obsidian Ledger */
+.ed-tips {
+  position: relative;
+  border-top: 1px solid rgba(250, 247, 242, 0.12);
+  border-bottom: 1px solid rgba(250, 247, 242, 0.12);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+}
+
+/* 6. Next Stop Departure Panel */
+.ed-next {
+  position: relative;
+  background: var(--ed-paper);
+}
+
+/* ==========================================================================
+   Squarespace Foundations Editorial Motion Suite
+   ========================================================================== */
+
+/* 1. 3D Character Reveal on Hero Title */
+.ed-hero__title {
+  perspective: 1000px;
+}
+.ed-hero__title .char {
+  display: inline-block;
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform-origin: 50% 100%;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.25s ease;
+}
+.ed-hero__title .char:hover {
+  color: var(--stop-accent, var(--saffron));
+}
+
+/* 2. Text Line Masks for Coordinated Fade-and-Slide */
+.ed-line-mask {
+  overflow: hidden;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+.ed-line-mask .line {
+  display: block;
+  will-change: transform, opacity;
+}
+
+/* 3. Scroll-Tied Rotational Tilt (Optimization) */
+.ed-tilt-target {
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+
+/* ==========================================================================
+   Kittl Design Masterclass Suite (Tactile Material Culture & Ephemera)
+   ========================================================================== */
+
+/* 1. Kittl Videos #11, #39, #49: Analog Paper & Risograph Grain Overlay */
+.ed-paper-grain {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9;
+  opacity: 0.038;
+  mix-blend-mode: multiply;
+}
+.ed-paper-grain svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* 2. Framer Text Reveal Scroll Helper (https://framer.com/m/text-reveal-scroll-helper-16vc5F.js@7Bke0DBIx7GpaBFlIp2X) */
+.ed-reveal-char,
+.ed-reveal-word {
+  display: inline;
+  will-change: opacity;
+  transition: opacity 0.04s ease-out;
+}
+
+/* ==========================================================================
+   Collect & Contrast: Archival Coffee Table Book Design System
+   ========================================================================== */
+
+.ed-masthead-tape,
+.ed-folio-mark,
+.ed-dispatch-card,
+.ed-spread__plate-bar,
+.ed-food__stamp {
+  display: none !important;
+}
+
+/* 1. Top Archival Masthead Tape */
+.ed-masthead-tape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 24px;
+  background: rgba(14, 12, 10, 0.04);
+  border-bottom: 1px dashed rgba(14, 12, 10, 0.18);
+  font-family: var(--font-mono, 'Sometype Mono', monospace);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6B645B);
+  user-select: none;
+}
+
+/* 2. CMYK Process & Spot Accent Bar */
+.ed-cmyk-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+.ed-cmyk-boxes {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.cmyk-box {
+  width: 9px;
+  height: 9px;
+  border-radius: 1px;
+  display: inline-block;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+.cmyk-c { background-color: #00AEEF; }
+.cmyk-m { background-color: #EC008C; }
+.cmyk-y { background-color: #FFF200; }
+.cmyk-k { background-color: #111111; }
+.cmyk-spot {
+  box-shadow: 0 0 0 1px rgba(14, 12, 10, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+.cmyk-reg {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6B645B);
+  opacity: 0.85;
+}
+
+/* 3. Folio Running Rule Across Spreads */
+.ed-folio-mark {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0 10px 0;
+  margin-bottom: 24px;
+  border-bottom: 1px dashed rgba(14, 12, 10, 0.18);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6B645B);
+  user-select: none;
+  opacity: 0.75;
+}
+.ed-folio-cross {
+  font-size: 12px;
+  color: var(--stop-accent, var(--saffron));
+}
+.ed-folio-spread {
+  font-weight: 600;
+  color: var(--color-text-dark, #0E0C0A);
+}
+
+/* 4. Hero Section Enhancements */
+.ed-hero__meta-top {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.ed-hero__coords {
+  grid-column: 1 / 11;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 18px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(250, 247, 242, 0.8);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.ed-hero__coords span {
+  padding: 2px 8px;
+  background: rgba(14, 12, 10, 0.35);
+  backdrop-filter: blur(8px);
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* 5. Architectural Crop Corners on Photos */
+.ed-crop-corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.75;
+}
+.ed-crop-tl { top: 6px; left: 6px; border-right: none; border-bottom: none; }
+.ed-crop-tr { top: 6px; right: 6px; border-left: none; border-bottom: none; }
+.ed-crop-bl { bottom: 6px; left: 6px; border-right: none; border-top: none; }
+.ed-crop-br { bottom: 6px; right: 6px; border-left: none; border-top: none; }
+
+.ed-polaroid__fig-num {
+  display: inline-block;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  color: var(--stop-accent, var(--saffron));
+  margin-right: 6px;
+}
+.ed-polaroid__fig-title {
+  display: inline;
+}
+
+/* 6. Spreads & Visual Anthology Plate Bar */
+.ed-spread__plate-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6B645B);
+}
+.ed-plate-tag {
+  font-weight: 700;
+  color: var(--stop-accent, var(--saffron));
+}
+
+/* 7. Archival Field Telegraph Card (Intro Section) */
+.ed-dispatch-card {
+  grid-column: 1 / -1;
+  background: rgba(14, 12, 10, 0.035);
+  border: 1px solid rgba(14, 12, 10, 0.12);
+  border-left: 3px solid var(--stop-accent, var(--saffron));
+  padding: 16px 20px;
+  margin-bottom: 32px;
+  border-radius: 2px;
+}
+.ed-dispatch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6B645B);
+}
+.ed-dispatch-badge {
+  font-weight: 700;
+  color: var(--stop-accent, var(--saffron));
+}
+.ed-dispatch-body {
+  font-family: var(--font-sans, sans-serif);
+  font-size: 15px;
+  line-height: 1.6;
+  font-style: italic;
+  color: var(--color-text-dark, #0E0C0A);
+  margin: 0;
+}
+
+/* 8. Culinary Specimen Tags & Provenance Stamp */
+.ed-food__stamp {
+  display: inline-block;
+  padding: 4px 10px;
+  margin-bottom: 12px;
+  border: 1px dashed var(--stop-accent, var(--saffron));
+  border-radius: 2px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--stop-accent, var(--saffron));
+}
+.ed-food__specimen-block {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(14, 12, 10, 0.15);
+}
+.ed-specimen-label {
+  display: block;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6B645B);
+  margin-bottom: 12px;
+}
+.ed-specimen-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(14, 12, 10, 0.04);
+  border: 1px solid rgba(14, 12, 10, 0.08);
+  border-radius: 2px;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--color-text-dark, #0E0C0A);
+}
+.ed-specimen-bullet {
+  color: var(--stop-accent, var(--saffron));
+  font-size: 10px;
+}
+
+/* 9. Festivals & Traditions Plates */
+.ed-fest__card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.ed-fest__plate-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6B645B);
+}
+.ed-fest__footer {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(14, 12, 10, 0.12);
+}
+.ed-fest__seal {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--stop-accent, var(--saffron));
+  opacity: 0.85;
+}
+
+/* 10. Traveler's Field Guide Icons */
+.ed-fact-icon {
+  margin-right: 4px;
+}
+
+/* 11. Next Stop Departure Voucher */
+.ed-next__ticket-wrap {
+  grid-column: 1 / -1;
+  position: relative;
+}
+.ed-next__voucher-meta {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px dashed rgba(14, 12, 10, 0.2);
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6B645B);
+}
+.ed-next__btn {
+  border: 1px dashed rgba(14, 12, 10, 0.3);
+  border-left: 5px solid var(--stop-accent, var(--saffron));
+  background: var(--cream, #FAF7F2);
+  padding: 24px 28px;
+  box-shadow: 0 4px 16px rgba(14, 12, 10, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.ed-next__btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(14, 12, 10, 0.12);
+}
+
+
+
+
+
+
+
+/* ==========================================================================
+   Archival Exhibit Specimen Modal & Interactive Polaroids
+   ========================================================================== */
+.ed-polaroid--interactive {
+  cursor: pointer;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease;
+}
+
+.ed-polaroid--interactive:hover {
+  transform: translateY(-5px) rotate(calc(var(--polaroid-rot, 0deg) * 0.8)) scale(1.015);
+  box-shadow: 0 18px 40px rgba(14, 12, 10, 0.22);
+}
+
+.ed-polaroid--interactive:focus-visible {
+  outline: 2px solid #1591EA;
+  outline-offset: 4px;
+}
+
+article.ed[data-chapter="srinagar"] .ed-houseboat-poster.ed-polaroid--interactive {
+  cursor: pointer;
+}
+
+.ed-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(14, 12, 10, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 3.5vw, 40px);
+  box-sizing: border-box;
+}
+
+.ed-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 1040px;
+  max-height: 90vh;
+  background: #FAF7F2;
+  border-radius: 8px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(320px, 1.15fr) 1.35fr;
+  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: #0E0C0A;
+}
+
+.ed-modal-media-col {
+  position: relative;
+  background: #0E0C0A;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ed-modal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.ed-modal-media-tag {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  background: rgba(14, 12, 10, 0.85);
+  backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.ed-modal-content-col {
+  padding: clamp(24px, 4vw, 44px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.ed-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(14, 12, 10, 0.12);
+  padding-bottom: 12px;
+}
+
+.ed-modal-kicker {
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #2E5E73;
+}
+
+.ed-modal-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+  color: #0E0C0A;
+  padding: 0 6px;
+  line-height: 1;
+  transition: opacity 0.2s;
+}
+
+.ed-modal-close-btn:hover {
+  opacity: 0.6;
+}
+
+.ed-modal-title {
+  font-family: 'SharpGroteskBlack', 'Sharp Grotesk', system-ui, sans-serif;
+  font-size: clamp(1.75rem, 2.5vw, 2.4rem);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  margin: 0 0 16px 0;
+  text-transform: uppercase;
+  color: #0E0C0A;
+}
+
+.ed-modal-desc {
+  font-family: 'Reckless', Georgia, serif;
+  font-size: clamp(1.05rem, 1.2vw, 1.2rem);
+  line-height: 1.6;
+  color: #3A332C;
+  margin-bottom: 24px;
+}
+
+.ed-modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid rgba(14, 12, 10, 0.12);
+}
+
+.ed-modal-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ed-modal-nav-btn {
+  background: #FFFFFF;
+  border: 1px solid rgba(14, 12, 10, 0.2);
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #0E0C0A;
+  transition: all 0.2s ease;
+}
+
+.ed-modal-nav-btn:hover:not(:disabled) {
+  background: #0E0C0A;
+  color: #FFFFFF;
+}
+
+.ed-modal-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.ed-modal-nav-counter {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: #6B645B;
+}
+
+.ed-modal-dismiss-btn {
+  background: #0E0C0A;
+  color: #FAF7F2;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 18px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.ed-modal-dismiss-btn:hover {
+  opacity: 0.85;
+}
+
+@media (max-width: 768px) {
+  .ed-modal-card {
+    grid-template-columns: 1fr !important;
+    max-height: 88vh !important;
+    overflow-y: auto !important;
+  }
+  .ed-modal-media-col {
+    min-height: 220px !important;
+    max-height: 260px !important;
+  }
 }
