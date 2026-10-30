@@ -42,9 +42,9 @@ export const CHAPTERS = [
     quote: '“If there is paradise on earth, it is here.” A Persian couplet often quoted about Kashmir.',
     sections: [
       ['A Morning on the Lake', 'Hire a shikara before sunrise to see the floating market, then drift past lotus beds and kingfishers.'],
-      ['Walnut, Wool and Wazwan', 'Visit old city workshops for carved walnut wood and pashmina, then sit down to a Wazwan feast.'],
+      ['Rogan Josh, Yakhni & Saffron Feast', 'An authentic multi-course Kashmiri spread slow-cooked over gentle embers—featuring tender lamb Rogan Josh redolent of Kashmiri chillies and dry ginger, delicate yogurt-simmered Yakhni, spiced mutton kebabs, and steaming saffron rice.'],
     ],
-    tips: { best: 'April to October; December to February for snow', reach: 'Fly into Srinagar airport, or take the train via Katra', eat: 'Wazwan, rogan josh, kahwa', stay: 'A houseboat on Dal or Nigeen Lake' },
+    tips: { best: 'April to October; December to February for snow', reach: 'Fly into Srinagar airport, or take the train via Katra', eat: 'Rogan josh, Yakhni, Seekh kebabs, Saffron rice, Kahwa', stay: 'A houseboat on Dal or Nigeen Lake' },
   }),
 
   chapter('manali', 'Manali', 'The Cedar Lodge', 'Where the mountains whisper', {
