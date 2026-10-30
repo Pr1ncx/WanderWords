@@ -287,9 +287,9 @@ body[data-phase='destination'] .miu-chip.is-active { background: var(--ink); }
 
 .train-wipe-track {
   position: absolute;
-  top: 0;
+  top: -2px;
   left: 0;
-  height: 100vh;
+  height: calc(100vh + 4px);
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -297,7 +297,7 @@ body[data-phase='destination'] .miu-chip.is-active { background: var(--ink); }
 }
 
 .train-wipe-car {
-  height: 100vh;
+  height: calc(100vh + 4px);
   width: auto;
   min-width: 178vh;
   max-width: none;
