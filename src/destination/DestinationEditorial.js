@@ -1128,6 +1128,173 @@ export class DestinationEditorial {
       scaleX: 1, ease: 'none',
       scrollTrigger: { scroller, start: 0, end: 'max', scrub: 0.2 },
     });
+
+    // Archival Exhibit Specimen Modal
+    this.initExhibitModals();
+  }
+
+  initExhibitModals() {
+    const scroller = this.root;
+    if (!scroller) return;
+    const items = Array.from(scroller.querySelectorAll('.ed-polaroid, .ed-houseboat-poster'));
+    if (!items.length) return;
+
+    items.forEach((item) => {
+      item.classList.add('ed-polaroid--interactive');
+      if (!item.getAttribute('tabindex')) item.setAttribute('tabindex', '0');
+      if (!item.getAttribute('role')) item.setAttribute('role', 'button');
+    });
+
+    let activeModal = null;
+    let currentIdx = -1;
+
+    const closeModal = () => {
+      if (!activeModal) return;
+      const modalToClose = activeModal;
+      activeModal = null;
+      currentIdx = -1;
+      gsap.to(modalToClose, {
+        opacity: 0,
+        duration: 0.22,
+        ease: 'power2.in',
+        onComplete: () => {
+          modalToClose.remove();
+          document.body.style.overflow = '';
+        },
+      });
+    };
+
+    const updateModalContent = (backdrop, data) => {
+      const img = backdrop.querySelector('.ed-modal-img');
+      const tag = backdrop.querySelector('.ed-modal-media-tag');
+      const kicker = backdrop.querySelector('.ed-modal-kicker');
+      const title = backdrop.querySelector('.ed-modal-title');
+      const desc = backdrop.querySelector('.ed-modal-desc');
+      const prevBtn = backdrop.querySelector('.ed-modal-prev-btn');
+      const nextBtn = backdrop.querySelector('.ed-modal-next-btn');
+      const counter = backdrop.querySelector('.ed-modal-nav-counter');
+
+      if (img) img.src = data.src;
+      if (tag) tag.textContent = data.caption;
+      if (kicker) kicker.textContent = `● ARCHIVAL EXHIBIT ${data.idx + 1} OF ${data.total}`;
+      if (title) title.textContent = data.title;
+      if (desc) desc.textContent = data.desc;
+      if (counter) counter.textContent = `${data.idx + 1} / ${data.total}`;
+      if (prevBtn) prevBtn.disabled = data.idx === 0;
+      if (nextBtn) nextBtn.disabled = data.idx === data.total - 1;
+    };
+
+    const openModalAtIndex = (idx) => {
+      if (idx < 0 || idx >= items.length) return;
+      currentIdx = idx;
+      const el = items[idx];
+
+      const src = el.getAttribute('data-modal-src') || el.querySelector('img')?.getAttribute('src') || '';
+      const title = el.getAttribute('data-modal-title') || el.querySelector('.ed-polaroid__fig-title')?.textContent || el.querySelector('h3')?.textContent || 'Exhibit Archive';
+      const caption = el.getAttribute('data-modal-caption') || el.querySelector('.ed-polaroid__fig-num')?.textContent || `PLATE ${idx + 1}`;
+      let desc = el.getAttribute('data-modal-desc') || '';
+      if (!desc) {
+        const spreadText = el.closest('.ed-spread')?.querySelector('.ed-spread__text p')?.textContent;
+        const foodText = el.closest('.ed-food')?.querySelector('.ed-food__text p')?.textContent;
+        const hbDesc = el.querySelector('.ed-houseboat-caption__desc')?.textContent;
+        desc = spreadText || foodText || hbDesc || '';
+      }
+
+      if (activeModal) {
+        updateModalContent(activeModal, { src, title, caption, desc, idx, total: items.length });
+        return;
+      }
+
+      const backdrop = document.createElement('div');
+      backdrop.className = 'ed-modal-backdrop';
+      backdrop.innerHTML = `
+        <div class="ed-modal-card" role="dialog" aria-modal="true" aria-label="${title}">
+          <div class="ed-modal-media-col">
+            <img class="ed-modal-img" src="${src}" alt="${title}" />
+            <div class="ed-modal-media-tag">${caption}</div>
+          </div>
+          <div class="ed-modal-content-col">
+            <div class="ed-modal-head">
+              <span class="ed-modal-kicker">● ARCHIVAL EXHIBIT ${idx + 1} OF ${items.length}</span>
+              <button class="ed-modal-close-btn" type="button" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="ed-modal-body">
+              <h2 class="ed-modal-title">${title}</h2>
+              <div class="ed-modal-desc">${desc}</div>
+            </div>
+            <div class="ed-modal-foot">
+              <div class="ed-modal-nav">
+                <button class="ed-modal-nav-btn ed-modal-prev-btn" type="button" ${idx === 0 ? 'disabled' : ''}>&larr; Prev</button>
+                <span class="ed-modal-nav-counter">${idx + 1} / ${items.length}</span>
+                <button class="ed-modal-nav-btn ed-modal-next-btn" type="button" ${idx === items.length - 1 ? 'disabled' : ''}>Next &rarr;</button>
+              </div>
+              <button class="ed-modal-dismiss-btn" type="button">Close</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(backdrop);
+      activeModal = backdrop;
+      document.body.style.overflow = 'hidden';
+
+      gsap.fromTo(backdrop,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.28, ease: 'power2.out' }
+      );
+      gsap.fromTo(backdrop.querySelector('.ed-modal-card'),
+        { opacity: 0, scale: 0.94, y: 15 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.35, ease: 'power3.out' }
+      );
+
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) closeModal();
+      });
+      backdrop.querySelector('.ed-modal-close-btn')?.addEventListener('click', closeModal);
+      backdrop.querySelector('.ed-modal-dismiss-btn')?.addEventListener('click', closeModal);
+
+      backdrop.querySelector('.ed-modal-prev-btn')?.addEventListener('click', () => {
+        if (currentIdx > 0) openModalAtIndex(currentIdx - 1);
+      });
+      backdrop.querySelector('.ed-modal-next-btn')?.addEventListener('click', () => {
+        if (currentIdx < items.length - 1) openModalAtIndex(currentIdx + 1);
+      });
+    };
+
+    const onKeyDown = (e) => {
+      if (!activeModal) return;
+      if (e.key === 'Escape') {
+        closeModal();
+      } else if (e.key === 'ArrowLeft') {
+        if (currentIdx > 0) openModalAtIndex(currentIdx - 1);
+      } else if (e.key === 'ArrowRight') {
+        if (currentIdx < items.length - 1) openModalAtIndex(currentIdx + 1);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    this.cleanupFns.push(() => {
+      window.removeEventListener('keydown', onKeyDown);
+      if (activeModal) {
+        activeModal.remove();
+        document.body.style.overflow = '';
+      }
+    });
+
+    items.forEach((item, idx) => {
+      const onClick = () => openModalAtIndex(idx);
+      const onKey = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openModalAtIndex(idx);
+        }
+      };
+      item.addEventListener('click', onClick);
+      item.addEventListener('keydown', onKey);
+      this.cleanupFns.push(() => {
+        item.removeEventListener('click', onClick);
+        item.removeEventListener('keydown', onKey);
+      });
+    });
   }
 
   teardown() {

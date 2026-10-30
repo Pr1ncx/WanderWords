@@ -1,88 +1,93 @@
 // Photo and video credits for WanderWords. These appear in Menu > Credits.
 export const CREDITS = {
   "srinagar": [
+    "cover.webp · Srinagar pano.jpg by KennyOMG (CC BY-SA 3.0)",
     "01.webp · Floating vegetable market on Dal Lake (Wikimedia Commons)",
     "02.webp · Shalimar Bagh terraces & waterfalls (Wikimedia Commons)",
     "03.webp · Kashmiri pashmina artisans by Bridgette Auger",
-    "cover.webp · Srinagar pano.jpg by KennyOMG (CC BY-SA 3.0)",
     "04.webp · Srinagar pano.jpg by KennyOMG (CC BY-SA 3.0)",
     "05.webp · India - Srinagar - 008 - lotus flower on Nagin lake (3919352498).jpg by McKay Savage from London, UK (CC BY 2.0)",
-    "06.webp · Kashmiri Warzwan 02.jpg by Aakash Goyal (CC BY-SA 4.0)"
+    "06.webp · Kashmiri Pandit Non-Vegetarian Cuisine.jpg by Raina.sahil (CC BY-SA 4.0)"
   ],
   "manali": [
-    "cover.webp · Skiing manali.jpg by Saurc zlunag at English Wikipedia (Public domain)",
-    "01.webp · Kullu Valley with River Beas - Kullu - Himachal Pradesh - 2014-05-09 2181.JPG by Biswarup Ganguly (CC BY 3.0)",
-    "02.webp · Bouldering in Solang Valley - Manali, India.jpg by Ryan Weller (CC BY 2.0)",
-    "03.webp · Hidimba Devi Temple - Manali - Himachal Pradesh.jpg by nayanamonish (CC BY-SA 4.0)",
-    "04.webp · Hand-knitted Himachali socks,1.jpg by Rajani Gairshail (CC BY-SA 4.0)",
-    "05.webp · Rohtang pass,himachal pradesh.jpg by Sai Subhang Boorlagadda (CC BY-SA 4.0)",
-    "06.webp · Kullvi Siddu (Himachal Pradesh).jpg by Rajani Gairshail (CC BY-SA 4.0)"
+    "cover.webp · The White Mountains Are Calling (165343547).jpeg by Stockified (CC0)",
+    "01.webp · Paragliders at Solang Valley, Manali.jpg by Madhumita Das (CC BY-SA 4.0)",
+    "02.webp · Hidimba Devi Temple, Dhungri Manali 3.jpg by Ganesh Mohan T (CC BY-SA 4.0)",
+    "03.webp · हथकरघा पर कुल्लू शाल बनाते बुनकर.jpg by Anilbhardwajnoida (CC BY-SA 3.0)",
+    "04.webp · A beautiful house in Manali.jpg by Tanvi.sharmaaa (CC BY-SA 4.0)",
+    "05.webp · Snow Rohtang Range Manali May24 A7CR 00128.jpg by This Photo was taken by Timothy A. Gonsalves.  Feel free to use my photos, but please mention me as the author.  I would much appreciate if you send me an email tagooty@yahoo.com or write on my talk page, for my information.  Please contact me before commercial use.    Please do not upload an edited image here without consulting me.  I would like to make corrections only at my own source to ensure that the changes improve the image and are preserved.Otherwise you may upload an edited image with a new name. Please use one of the templates derivative or extract. (CC BY-SA 4.0)",
+    "06.webp · Siddu (23519).jpg by Gannu03 (CC BY-SA 4.0)"
   ],
   "amritsar": [
-    "cover.webp · Golden Temple night view - IMG 6323-2.jpg by Bijay Chaurasia (CC BY-SA 4.0)",
-    "01.webp · Sikh pilgrim at the Golden Temple (Harmandir Sahib) in Amritsar, India.jpg by Paulrudd (CC BY-SA 4.0)",
-    "02.webp · Photograph of a pathasala class held at the Golden Temple complex in Amritsar, with a wooden takhtī being used by one of the schoolboys, Punjab, 1908.jpg by Unknown photographer (Public domain)",
-    "03.webp · International border at Wagah - evening flag lowering ceremony.jpg by Kamran Ali (CC BY-SA 3.0)",
-    "04.webp · Volunteers helping at the Golden Temple langar, Sikhism in India.jpg by Ken Wieland from Philadelphia, USA (CC BY-SA 2.0)",
-    "05.webp · Amritsar Golden Temple 5.JPG by Julian Nyča (CC BY 3.0)",
-    "06.webp · Special Amritsari kulchas.jpg by Manpreet Singh Grover (CC BY-SA 4.0)"
+    "cover.webp · Baba Buddha Ber, the pool, Dukh Dashini Ber and Golden sanctum at the Darbar Sahib (Golden Temple) (31006549240).jpg by Raghavan Prabhu (CC BY 2.0)",
+    "01.webp · Harmandir Sahib Illuminated at Night, Amritsar, Punjab, India.jpg by Kavaljeet Singh (CC BY-SA 4.0)",
+    "02.webp · BeatingRetreat.jpg by Gargisharma13 (CC BY-SA 4.0)",
+    "03.webp · Guru Ram Das Langar in the golden temple complex in Amritsar 04.jpg by Kritzolina (CC BY-SA 4.0)",
+    "04.webp · A Phulkari with traditional flower pattern on unworked background.jpg by Chiswick Chap (CC BY-SA 4.0)",
+    "05.webp · Golden Temple (Harmandir Sahib) at night, Amritsar, Punjab, India (2017).jpg by shankar s. from Dubai, united arab emirates (CC BY 2.0)",
+    "06.webp · Amritsari Kulcha served with chhole.jpg by Ravi Dwivedi (CC BY-SA 4.0)"
   ],
   "jaipur": [
-    "cover.webp · Hawa Mahal east facade (14-07-2022).jpg by Chainwit. (CC BY-SA 4.0)",
-    "01.webp · Courtyard city palace, Jaipur.jpg by Const.crist (CC BY-SA 3.0)",
-    "02.webp · 20191218 Hawa Mahal (The Palace of Winds) in Jaipur, 1156 9165.jpg by Jakub Hałun (CC BY-SA 4.0)",
-    "03.webp · Jaipur, Amber Fort, Lake Maota, fishermen (9713583012).jpg by Arian Zwegers from Brussels, Belgium (CC BY 2.0)",
-    "04.webp · Wooden Block prints Jaipur.jpg by Silverrays (CC BY-SA 4.0)",
+    "cover.webp · 20191218 Pałac Wiatrów w Jaipurze 1129 9124.jpg by Jakub Hałun (CC BY-SA 4.0)",
+    "01.webp · East facade Hawa Mahal Jaipur from ground level (July 2022) - img 02.jpg by Chainwit. (CC BY-SA 4.0)",
+    "02.webp · Jaigarh Fort overlooking the Amer Fort and Maota Lake.jpg by Sharvarism (CC BY-SA 4.0)",
+    "03.webp · Jaipur 03-2016 10 textile printing.jpg by A.Savin (FAL)",
+    "04.webp · Tower of the Gipaliya Bazar in Jaipur.jpg by Dudva (CC0)",
     "05.webp · NAHARGARH FORT SUNRISE.jpg by Aayush Paliwal (AP) (CC BY-SA 4.0)",
-    "06.webp · Dal-Batti-Churma.jpg by Rishabhbenganijain (CC BY-SA 4.0)"
+    "06.webp · \"Delectable Dal Baati Churma\".jpg by Mahi Tatavarty (CC BY-SA 4.0)"
   ],
   "agra": [
-    "cover.webp · Morning view of the Taj Mahal, Agra, Uttar Pradesh, India.jpg by Dan Searle (CC BY-SA 2.0)",
-    "01.webp · Morning rays on Taj-view from Mehtab Bagh.JPG by g.kaustav (CC BY-SA 3.0)",
-    "02.webp · Mehtab Bagh near Yamuna River.jpg by Vijaylaxmi Sharma (CC BY-SA 3.0)",
-    "03.webp · Agra Fort,Agra.jpg by Darshanadakane (CC BY-SA 3.0)",
-    "04.webp · Taj M.jpg by NainikaK (CC BY-SA 4.0)",
-    "05.webp · Fatehput Sikiri Buland Darwaza gate 2010.jpg by Marcin Białek (CC BY-SA 3.0)",
-    "06.webp · Agra sweet petha.jpg by Muralikrishna m (CC BY 4.0)"
+    "cover.webp · Aks The Reflection Taj Mahal.jpg by Antrix3 (CC BY-SA 4.0)",
+    "01.webp · Across the Yamuna river from the Taj Mahal (65798825).jpg by Guilhem Vellut from Annecy, France (CC BY 2.0)",
+    "02.webp · Jahangiri Mahal-Red Fort-Agra-India5363.JPG by Diego Delso (CC BY-SA 4.0)",
+    "03.webp · Pietra Dura - Pillar - Musamman Burj - Agra Fort - Agra 2014-05-14 4143.JPG by Biswarup Ganguly (CC BY 3.0)",
+    "04.webp · Fatehpur Sikri near Agra 2016-03 img08.jpg by A.Savin (FAL)",
+    "05.webp · Dawn Taj Mahal.jpg by Phecda109 (CC BY-SA 3.0)",
+    "06.webp · Petha kesari.JPG by PJ.wikilovesfood (CC BY-SA 4.0)"
   ],
   "goa": [
-    "cover.webp · Bw (225071167).jpeg by Lasoins (CC0)",
-    "01.webp · Goa anjuna beach high tide image.jpg by Jdhotre (CC BY-SA 4.0)",
-    "02.webp · Palolem beach.jpg by Satyajit Nayak (CC BY-SA 4.0)",
-    "03.webp · Fontainhas, the Latin Quarter of Panjim, Goa.jpg by Fredericknoronha (CC BY-SA 4.0)",
-    "04.webp · Fish Curry Rice Thali (28189746285).jpg by Joegoaukfishcurry2 (CC BY-SA 2.0)",
-    "05.webp · Basilica of Bom Jesus 8 (Old Goa).jpg by Aviatorjk (CC BY-SA 3.0)",
-    "06.webp · Bebinca com 9 folhas.JPG by Elingunnur (CC BY-SA 4.0)"
+    "cover.webp · Sunloungers at Palolem beach.jpg by Ravi Dwivedi (CC BY-SA 4.0)",
+    "01.webp · Palolem Beach, South Goa.jpg by iMahesh (CC BY-SA 4.0)",
+    "02.webp · A house on the streets of Fontainhas, Panaji (05).jpg by iMahesh (CC BY-SA 4.0)",
+    "03.webp · Fish Curry Rice Thali (28189746285).jpg by Joegoaukfishcurry2 (CC BY-SA 2.0)",
+    "04.webp · Basilica of Bom Jesus and vehicles parked infront.jpg by iMahesh (CC BY-SA 4.0)",
+    "05.webp · Mandrem Beach and Mandrem River, Mandrem, Goa, India (edit).jpg by Original:  Vyacheslav Argenberg  Derivative work:  UnpetitproleX (CC BY 4.0)",
+    "06.webp · Bebinca- Kerala Style.jpg by Alex Ouseppachan (CC0)"
   ],
   "munnar": [
-    "cover.webp · Munnar tea gardens.jpg by Wikimedia Commons (Public domain)",
-    "01.webp · Tea plantations in Munnar, Kerala.jpg by RIDH-1 (CC BY 4.0)",
-    "02.webp · Tea workers carry their load on the highway (28143467694).jpg by shankar s. from Dubai, united arab emirates (CC BY 2.0)",
-    "03.webp · Nilgiri Tahr Adult.jpg by Sreeraj PS aka Ezhuttukari (CC BY-SA 3.0)",
-    "04.webp · Moolakadai, Munnar, Kerala 685612, India - panoramio (1).jpg by Saminathan Suresh (CC BY-SA 3.0)",
-    "05.webp · Munnar (37).JPG by Shanmugamp7 (CC BY-SA 3.0)",
+    "cover.webp · Munnar Tea Plantations-WUS07343-Pano.jpg by Rainer Halama (CC BY-SA 4.0)",
+    "01.webp · Tea workers carry their load on the highway (28143467694).jpg by shankar s. from Dubai, united arab emirates (CC BY 2.0)",
+    "02.webp · Nilgiri Tahr Adult.jpg by Sreeraj PS aka Ezhuttukari (CC BY-SA 3.0)",
+    "03.webp · A closer view of the processed tea falling onto the conveyor (28760902175).jpg by shankar s. from Dubai, united arab emirates (CC BY 2.0)",
+    "04.webp · Munnar - Top Station Highway-WUS07295.jpg by Rainer Halama (CC BY-SA 4.0)",
+    "05.webp · Mist covered Tea Gardens in Munnar.jpg by Ruben Joseph (CC BY-SA 3.0)",
     "06.webp · Appam with red chutney-Mangalore-Karnataka-DSC002.jpg by Yakshitha (CC BY-SA 4.0)"
   ],
   "gangtok": [
-    "cover.webp · Round Kangchenjunga; a narrative of mountain travel and exploration (1903) (14793535103).jpg by Freshfield, Douglas William, 1845-1934 (No restrictions)",
-    "01.webp · Ranka Monastry.jpg by Arpan Mahajan (CC BY-SA 4.0)",
-    "02.webp · Rumtek Monastery - Inside Close View.jpg by Indrajit Das (CC BY-SA 3.0)",
-    "03.webp · Tsongmo Lake or Changu Lake - East Sikkim.jpg by Indrajit Das (CC BY 3.0)",
-    "04.webp · Jhol Momo in Kalimpong.jpg by PansanLepcha (CC BY-SA 4.0)",
+    "cover.webp · Kangchenjunga (Kanchenjunga) on morning.jpg by Abhishek.ghosh1984 (CC BY-SA 4.0)",
+    "01.webp · Rumtek Monastery - Inside Close View.jpg by Indrajit Das (CC BY-SA 3.0)",
+    "02.webp · Changu (Tsomgo) Lake.jpg by Kuldeepburjbhalaike (CC BY-SA 4.0)",
+    "03.webp · Jhol Momo in Kalimpong.jpg by PansanLepcha (CC BY-SA 4.0)",
+    "04.webp · Statue of Mahatma Gandhi in Gangtok.jpg by Bernard Gagnon (CC BY-SA 4.0)",
+    "05.webp · Nathu La Pass - Layered Road.jpg by Indrajit Das (CC BY-SA 3.0)",
     "06.webp · Thukpa bowl from Lahaul–Spiti.jpg by Rajani Gairshail (CC BY-SA 4.0)"
   ],
   "kutch": [
-    "cover.webp · White Rann of Kutch.jpg by Rahul Zota (CC BY-SA 4.0)",
-    "01.webp · Salt desert, Great Rann of Kutch (16494913578).jpg by Nagarjun Kandukuru from Bangalore, India (CC BY 2.0)",
+    "cover.webp · Salt desert, Great Rann of Kutch (16494913578).jpg by Nagarjun Kandukuru from Bangalore, India (CC BY 2.0)",
+    "01.webp · The White Desert in Kutch, the great rann of kutch.jpg by Ranjith Kumar Inbasekaran (CC BY-SA 4.0)",
     "02.webp · Rann utsav 02.jpg by Mekshaa (CC BY-SA 4.0)",
-    "04.webp · Embroidered hanging, Kutch (western India.jpg by AnonymousUnknown author (CC0)",
-    "05.webp · Rann of Kutch - White Desert.jpg by Superfast1111 (CC BY-SA 3.0)",
-    "06.webp · A yummy dish.jpg by Nilofar Kalam (CC BY-SA 4.0)"
+    "03.webp · 2018-07-18 kutch mud work.jpg by b sarangi (CC0)",
+    "04.webp · Baby carriers from India, Sindh or Kutch, Honolulu Museum of Art 5449.jpg by Hiart (CC0)",
+    "05.webp · Kala Dungar, Kachchh - panoramio.jpg by Raman Patel (CC BY 3.0)",
+    "06.webp · Daabeli.JPG by Kanikatwl (CC BY-SA 4.0)"
   ],
   "shillong": [
     "cover.webp · Elephant Falls.jpg by Akash Bhairav Gupta (CC BY-SA 3.0)",
-    "01.webp · Shillong from Shillong Peak.jpg by Aadri (CC BY-SA 3.0)",
-    "02.webp · Living root bridges of Nongriat village in East Khasi Hills district, Meghalaya JEG7348.jpg by PJeganathan (CC BY-SA 4.0)",
-    "03.webp · Umiam Lake Shilong.jpg by Yash raina (CC BY-SA 4.0)"
+    "01.webp · Living root bridge, Maghalaya, India1.jpg by Joydeep Chakraborty (CC BY-SA 4.0)",
+    "02.webp · Umiam Lake Shilong.jpg by Yash raina (CC BY-SA 4.0)",
+    "03.webp · Provision Shop Riangdo South West Khasi Oct24 A7CR 04231.jpg by Timothy A. Gonsalves (CC BY-SA 4.0)",
+    "04.webp · Shillong from Shillong Peak.jpg by Aadri (CC BY-SA 3.0)",
+    "05.webp · Living root bridges, Nongriat village, Meghalaya2.jpg by Arshiya Urveeja Bose (CC BY 2.0)",
+    "06.webp · Nohkalikai falls,Cherrapunji,Meghalaya.jpg by Vijayakumarblathur (CC BY-SA 4.0)"
   ]
 };
